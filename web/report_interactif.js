@@ -1,4 +1,5 @@
 const cards = Array.from(document.querySelectorAll('.card'));
+const geometrySelect = document.getElementById('geometryFilter');
 const angleSelect = document.getElementById('angleFilter');
 const tauSelect = document.getElementById('tauFilter');
 const scaleToggle = document.getElementById('scaleFilter');
@@ -25,15 +26,23 @@ for (const t of taus) {
 }
 
 function applyFilter() {
+  const geometry = geometrySelect ? geometrySelect.value : 'all';
   const a = angleSelect.value;
   const t = tauSelect.value;
   for (const c of cards) {
+    const cardGeometry = c.dataset.geometry || 'sphere';
+    const okGeometry = (geometry === 'all' || cardGeometry === geometry);
     const okA = (a === 'all' || c.dataset.angle === a);
     const okT = (t === 'all' || c.dataset.tau === t);
-    c.classList.toggle('hidden', !(okA && okT));
+    c.classList.toggle('hidden', !(okGeometry && okA && okT));
+  }
+  for (const figure of document.querySelectorAll('.reflectance figure')) {
+    const okGeometry = geometry === 'all' || figure.dataset.geometry === geometry;
+    figure.classList.toggle('hidden', !okGeometry);
   }
 }
 
+if (geometrySelect) geometrySelect.addEventListener('change', applyFilter);
 angleSelect.addEventListener('change', applyFilter);
 tauSelect.addEventListener('change', applyFilter);
 applyFilter();

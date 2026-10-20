@@ -213,7 +213,8 @@ distributions angulaires; les fichiers de fonction de phase restent séparés.
 Elle ajoute aussi la réflectance directionnelle
 $R_{dir}=F_{diffus\ montant}/F_{incident}$ en fonction de l’épaisseur optique,
 avec une courbe par angle d’incidence sur un même graphique et un axe tau
-linéaire. Les résultats sphère et cube sont tracés séparément.
+linéaire. Les résultats sphère et cube sont tracés séparément; le sélecteur
+« Forme » filtre ensemble les courbes et les distributions angulaires.
 Deux interrupteurs permettent de choisir l’échelle logarithmique de l’ordonnée
 et de remplacer $\alpha_d$ par $\cos(\alpha_d)$ en abscisse; les deux choix sont
 indépendants.

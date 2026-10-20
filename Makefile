@@ -264,6 +264,7 @@ report: .replot-sweep
 	outfile="$$output_dir/report_interactif.html"
 	{
 	  printf '%s\n' '<!DOCTYPE html>' '<html lang="fr">' '<head>' '<meta charset="UTF-8">' '<title>Rapport interactif – scatter-cloud-mc</title>' '<link rel="stylesheet" href="../web/report_interactif.css">' '</head>' '<body>' '<h1>Rapport interactif – scatter-cloud-mc</h1>'
+	  printf '%s\n' '<div class="controls"><label>Forme : <select id="geometryFilter"><option value="all">Toutes</option><option value="sphere">Sphère</option><option value="cube">Cube</option></select></label>' '<label>Angle : <select id="angleFilter"><option value="all">Tous</option></select></label>' '<label>Tau : <select id="tauFilter"><option value="all">Tous</option></select></label>' '<label class="scale-toggle" for="scaleFilter"><input id="scaleFilter" type="checkbox" role="switch"><span>Échelle logarithmique</span></label>' '<label class="scale-toggle" for="cosAlphaDFilter"><input id="cosAlphaDFilter" type="checkbox" role="switch"><span>Abscisse cos(α_d)</span></label></div>'
 	  if [[ -f "$$output_dir/reflectance_sphere.png" || -f "$$output_dir/reflectance_cube.png" ]]; then
 	    printf '%s\n' '<section class="reflectance"><h2>Réflectance directionnelle</h2>' '<p>R<sub>dir</sub> = flux diffus montant / flux incident dans la direction θ<sub>0</sub>.</p>' '<div class="reflectance-grid">'
 	    for geometry in sphere cube; do
@@ -271,12 +272,12 @@ report: .replot-sweep
 	      if [[ -f "$$output_dir/$$png_file" ]]; then
 	        label=Sphère
 	        if [[ "$$geometry" == cube ]]; then label=Cube; fi
-	        printf '  <figure><figcaption>%s</figcaption><img src="%s" alt="Réflectance directionnelle du balayage %s"></figure>\n' "$$label" "$$png_file" "$$label"
+	        printf '  <figure data-geometry="%s"><figcaption>%s</figcaption><img src="%s" alt="Réflectance directionnelle du balayage %s"></figure>\n' "$$geometry" "$$label" "$$png_file" "$$label"
 	      fi
 	    done
 	    printf '%s\n' '</div></section>'
 	  fi
-	  printf '%s\n' '<div class="controls"><label>Angle : <select id="angleFilter"><option value="all">Tous</option></select></label>' '<label>Tau : <select id="tauFilter"><option value="all">Tous</option></select></label>' '<label class="scale-toggle" for="scaleFilter"><input id="scaleFilter" type="checkbox" role="switch"><span>Échelle logarithmique</span></label>' '<label class="scale-toggle" for="cosAlphaDFilter"><input id="cosAlphaDFilter" type="checkbox" role="switch"><span>Abscisse cos(α_d)</span></label></div>' '<div class="grid" id="grid">'
+	  printf '%s\n' '<div class="grid" id="grid">'
 	  while IFS= read -r image; do
 	    directory=$$(dirname "$$image")
 	    directory_name=$$(basename "$$directory")
@@ -310,7 +311,7 @@ report: .replot-sweep
 	    escaped_mu_image=$$(html_escape "$$mu_image_relative")
 	    escaped_mu_linear_image=$$(html_escape "$$mu_linear_image_relative")
 	    escaped_caption=$$(html_escape "$$caption")
-	    printf '  <div class="card" data-angle="%s" data-tau="%s" data-alpha-d-log-src="%s" data-alpha-d-linear-src="%s" data-mu-log-src="%s" data-mu-linear-src="%s"><img src="%s" alt="%s"><div class="caption">%s<br><code>%s</code></div></div>\n' "$$escaped_angle" "$$escaped_tau" "$$escaped_image" "$$escaped_linear_image" "$$escaped_mu_image" "$$escaped_mu_linear_image" "$$escaped_linear_image" "$$escaped_caption" "$$escaped_caption" "$$escaped_linear_image"
+	    printf '  <div class="card" data-geometry="%s" data-angle="%s" data-tau="%s" data-alpha-d-log-src="%s" data-alpha-d-linear-src="%s" data-mu-log-src="%s" data-mu-linear-src="%s"><img src="%s" alt="%s"><div class="caption">%s<br><code>%s</code></div></div>\n' "$$geometry" "$$escaped_angle" "$$escaped_tau" "$$escaped_image" "$$escaped_linear_image" "$$escaped_mu_image" "$$escaped_mu_linear_image" "$$escaped_linear_image" "$$escaped_caption" "$$escaped_caption" "$$escaped_linear_image"
 	  done < <(find "$$output_dir" -type f -name '*.png' ! -name '*_phase.png' ! -name '*_linear.png' ! -name '*_mu.png' ! -name 'reflectance_*.png' | sort)
 	  printf '%s\n' '</div>' '<div id="lightbox"><img id="lightbox-img" src=""></div>' '<script src="../web/report_interactif.js"></script>' '</body>' '</html>'
 	} > "$$outfile"

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Rapport interactif – scatter-cloud-mc</title>
+<link rel="stylesheet" href="../web/report_interactif.css">
+</head>
+<body>
+<h1>Rapport interactif – scatter-cloud-mc</h1>
+<div class="controls"><label>Forme : <select id="geometryFilter"><option value="all">Toutes</option><option value="sphere">Sphère</option><option value="cube">Cube</option></select></label>
+<label>Angle : <select id="angleFilter"><option value="all">Tous</option></select></label>
+<label>Tau : <select id="tauFilter"><option value="all">Tous</option></select></label>
+<label class="scale-toggle" for="scaleFilter"><input id="scaleFilter" type="checkbox" role="switch"><span>Échelle logarithmique</span></label>
+<label class="scale-toggle" for="cosAlphaDFilter"><input id="cosAlphaDFilter" type="checkbox" role="switch"><span>Abscisse cos(α_d)</span></label></div>
+<section class="reflectance"><h2>Réflectance directionnelle</h2>
+<p>R<sub>dir</sub> = flux diffus montant / flux incident dans la direction θ<sub>0</sub>.</p>
+<div class="reflectance-grid">
+  <figure data-geometry="sphere"><figcaption>Sphère</figcaption><img src="reflectance_sphere.png" alt="Réflectance directionnelle du balayage Sphère"></figure>
+  <figure data-geometry="cube"><figcaption>Cube</figcaption><img src="reflectance_cube.png" alt="Réflectance directionnelle du balayage Cube"></figure>
+</div></section>
+<div class="grid" id="grid">
+  <div class="card" data-geometry="sphere" data-angle="0" data-tau="0.01" data-alpha-d-log-src="angle0_tau0.01/demo.png" data-alpha-d-linear-src="angle0_tau0.01/demo.png" data-mu-log-src="angle0_tau0.01/demo.png" data-mu-linear-src="angle0_tau0.01/demo.png"><img src="angle0_tau0.01/demo.png" alt="Distribution, géométrie = sphere, angle = 0°, tau = 0.01, N détectés = ?"><div class="caption">Distribution, géométrie = sphere, angle = 0°, tau = 0.01, N détectés = ?<br><code>angle0_tau0.01/demo.png</code></div></div>
+  <div class="card" data-geometry="sphere" data-angle="0" data-tau="10" data-alpha-d-log-src="angle0_tau10/demo.png" data-alpha-d-linear-src="angle0_tau10/demo.png" data-mu-log-src="angle0_tau10/demo.png" data-mu-linear-src="angle0_tau10/demo.png"><img src="angle0_tau10/demo.png" alt="Distribution, géométrie = sphere, angle = 0°, tau = 10, N détectés = ?"><div class="caption">Distribution, géométrie = sphere, angle = 0°, tau = 10, N détectés = ?<br><code>angle0_tau10/demo.png</code></div></div>
+  <div class="card" data-geometry="sphere" data-angle="0" data-tau="1" data-alpha-d-log-src="angle0_tau1/demo.png" data-alpha-d-linear-src="angle0_tau1/demo.png" data-mu-log-src="angle0_tau1/demo.png" data-mu-linear-src="angle0_tau1/demo.png"><img src="angle0_tau1/demo.png" alt="Distribution, géométrie = sphere, angle = 0°, tau = 1, N détectés = ?"><div class="caption">Distribution, géométrie = sphere, angle = 0°, tau = 1, N détectés = ?<br><code>angle0_tau1/demo.png</code></div></div>
+  <div class="card" data-geometry="cube" data-angle="0" data-tau="0.01" data-alpha-d-log-src="cube_angle0_tau0.01/demo.png" data-alpha-d-linear-src="cube_angle0_tau0.01/demo.png" data-mu-log-src="cube_angle0_tau0.01/demo.png" data-mu-linear-src="cube_angle0_tau0.01/demo.png"><img src="cube_angle0_tau0.01/demo.png" alt="Distribution, géométrie = cube, angle = 0°, tau = 0.01, N détectés = ?"><div class="caption">Distribution, géométrie = cube, angle = 0°, tau = 0.01, N détectés = ?<br><code>cube_angle0_tau0.01/demo.png</code></div></div>
+  <div class="card" data-geometry="cube" data-angle="0" data-tau="10" data-alpha-d-log-src="cube_angle0_tau10/demo.png" data-alpha-d-linear-src="cube_angle0_tau10/demo.png" data-mu-log-src="cube_angle0_tau10/demo.png" data-mu-linear-src="cube_angle0_tau10/demo.png"><img src="cube_angle0_tau10/demo.png" alt="Distribution, géométrie = cube, angle = 0°, tau = 10, N détectés = ?"><div class="caption">Distribution, géométrie = cube, angle = 0°, tau = 10, N détectés = ?<br><code>cube_angle0_tau10/demo.png</code></div></div>
+  <div class="card" data-geometry="cube" data-angle="0" data-tau="1" data-alpha-d-log-src="cube_angle0_tau1/demo.png" data-alpha-d-linear-src="cube_angle0_tau1/demo.png" data-mu-log-src="cube_angle0_tau1/demo.png" data-mu-linear-src="cube_angle0_tau1/demo.png"><img src="cube_angle0_tau1/demo.png" alt="Distribution, géométrie = cube, angle = 0°, tau = 1, N détectés = ?"><div class="caption">Distribution, géométrie = cube, angle = 0°, tau = 1, N détectés = ?<br><code>cube_angle0_tau1/demo.png</code></div></div>
+</div>
+<div id="lightbox"><img id="lightbox-img" src=""></div>
+<script src="../web/report_interactif.js"></script>
+</body>
+</html>
