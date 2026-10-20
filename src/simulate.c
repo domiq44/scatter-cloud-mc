@@ -15,16 +15,19 @@ static int build_output_filename(const Config *config, const char *output_dir, c
     if (!config || !output_dir || !filename || filename_size == 0)
         return 0;
 
+    const char *geometry = config->geometry == GEOMETRY_CUBE ? "cube" : "sphere";
     int length;
     if (config->phase_function == PHASE_FUNCTION_DOUBLE_HG) {
-        length = snprintf(filename, filename_size,
-                          "%s/theta%.0f_radius%.1f_albedo%.2f_doubleHG_g1%.6g_g2%.6g_p%.6g_N%d.csv",
-                          output_dir, config->theta_zero, config->radius, config->albedo, config->g,
-                          config->g2, config->hg_fraction, config->n_photons);
+        length =
+            snprintf(filename, filename_size,
+                     "%s/%s_theta%.0f_radius%.8g_albedo%.2f_doubleHG_g1%.6g_g2%.6g_p%.6g_N%d.csv",
+                     output_dir, geometry, config->theta_zero, config->radius, config->albedo,
+                     config->g, config->g2, config->hg_fraction, config->n_photons);
     } else {
-        length = snprintf(
-            filename, filename_size, "%s/theta%.0f_radius%.1f_albedo%.2f_g%.2f_N%d.csv", output_dir,
-            config->theta_zero, config->radius, config->albedo, config->g, config->n_photons);
+        length =
+            snprintf(filename, filename_size, "%s/%s_theta%.0f_radius%.8g_albedo%.2f_g%.2f_N%d.csv",
+                     output_dir, geometry, config->theta_zero, config->radius, config->albedo,
+                     config->g, config->n_photons);
     }
     return length >= 0 && (size_t)length < filename_size;
 }

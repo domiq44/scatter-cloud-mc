@@ -202,6 +202,9 @@ Dans les deux cas, $\tau$ désigne l'épaisseur optique moyenne
 $\bar\tau = \sigma_e\bar\ell$. Pour le cube, le balayage calcule
 `radius = τ (|sin θ₀| + |cos θ₀|) / (2 σₑ)` pour chaque angle; pour la sphère,
 il utilise `radius = 3 τ / (4 σₑ)`.
+Les fichiers de sortie identifient aussi leur géométrie (`sphere_` ou `cube_`)
+et conservent la précision utile de `radius`, y compris pour les valeurs
+inférieures à 0,1.
 
 `report` régénère les graphiques et crée une galerie HTML dans
 `output/report_interactif.html`. La galerie présente uniquement les
