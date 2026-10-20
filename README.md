@@ -1,4 +1,4 @@
-# Scatter Sphere MC
+# Scatter Cloud MC
 
 Simulateur Monte Carlo en C11 du transport de photons dans un nuage de forme
 configurable : sphère ou cube. Il modélise la diffusion de
