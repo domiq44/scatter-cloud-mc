@@ -1,0 +1,16 @@
+set terminal pngcairo size 1100,650 enhanced font 'Sans,12'
+set output output_file
+set datafile separator whitespace
+unset logscale x
+set xrange [0:100]
+set yrange [0:*]
+set xlabel 'Épaisseur optique moyenne τ'
+set ylabel 'Réflectance directionnelle R_dir'
+set title sprintf('Réflectance directionnelle – %s', geometry)
+set grid xtics ytics
+set key top left
+
+plot data_file using ($1 == 0 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#245b9e' title 'θ₀ = 0°', \
+     data_file using ($1 == 30 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#d1495b' title 'θ₀ = 30°', \
+     data_file using ($1 == 60 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#2a9d8f' title 'θ₀ = 60°', \
+     data_file using ($1 == 90 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#e9a23b' title 'θ₀ = 90°'

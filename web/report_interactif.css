@@ -234,3 +234,32 @@ select {
   outline: 2px solid #245b9e;
   outline-offset: 2px;
 }
+
+.reflectance {
+  padding: 20px;
+}
+
+.reflectance h2 {
+  margin: 0 0 8px;
+}
+
+.reflectance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr));
+  gap: 24px;
+}
+
+.reflectance figure {
+  margin: 0;
+}
+
+.reflectance figcaption {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.reflectance img {
+  display: block;
+  width: 100%;
+  height: auto;
+}

@@ -228,9 +228,49 @@ report: .replot-sweep
 	}
 	output_dir="$(OUTPUT_DIR)"
 	mkdir -p "$$output_dir"
+	shopt -s nullglob
+	flux_files=("$$output_dir"/angle*_tau*/*.flux.csv "$$output_dir"/cube_angle*_tau*/*.flux.csv)
+	for geometry in sphere cube; do
+	  data_file="$$output_dir/reflectance_$$geometry.dat"
+	  : > "$$data_file"
+	  for flux_file in "$${flux_files[@]}"; do
+	    experiment_dir=$$(basename "$$(dirname "$$flux_file")")
+	    file_geometry=sphere
+	    if [[ "$$experiment_dir" == cube_* ]]; then
+	      file_geometry=cube
+	      experiment_dir=$${experiment_dir#cube_}
+	    fi
+	    if [[ "$$file_geometry" != "$$geometry" ]]; then continue; fi
+	    angle=$${experiment_dir#angle}
+	    angle=$${angle%%_tau*}
+	    tau=$${experiment_dir#*_tau}
+	    reflectance=$$(awk -F, '$$1 == "diffuse_upward" {print $$3; exit}' "$$flux_file")
+	    if [[ -n "$$reflectance" ]]; then
+	      printf '%s %s %s\n' "$$angle" "$$tau" "$$reflectance" >> "$$data_file"
+	    fi
+	  done
+	  if [[ -s "$$data_file" ]]; then
+	    sort -g -k1,1 -k2,2 "$$data_file" -o "$$data_file"
+	    gnuplot -e "data_file='$$data_file'; output_file='$$output_dir/reflectance_$$geometry.png'; geometry='$$geometry'" \
+	      gnuplot/directional_reflectance.gp.in
+	  fi
+	done
 	outfile="$$output_dir/report_interactif.html"
 	{
-	  printf '%s\n' '<!DOCTYPE html>' '<html lang="fr">' '<head>' '<meta charset="UTF-8">' '<title>Rapport interactif – scatter-cloud-mc</title>' '<link rel="stylesheet" href="../web/report_interactif.css">' '</head>' '<body>' '<h1>Rapport interactif – scatter-cloud-mc</h1>' '<div class="controls"><label>Angle : <select id="angleFilter"><option value="all">Tous</option></select></label>' '<label>Tau : <select id="tauFilter"><option value="all">Tous</option></select></label>' '<label class="scale-toggle" for="scaleFilter"><input id="scaleFilter" type="checkbox" role="switch"><span>Échelle logarithmique</span></label>' '<label class="scale-toggle" for="cosAlphaDFilter"><input id="cosAlphaDFilter" type="checkbox" role="switch"><span>Abscisse cos(α_d)</span></label></div>' '<div class="grid" id="grid">'
+	  printf '%s\n' '<!DOCTYPE html>' '<html lang="fr">' '<head>' '<meta charset="UTF-8">' '<title>Rapport interactif – scatter-cloud-mc</title>' '<link rel="stylesheet" href="../web/report_interactif.css">' '</head>' '<body>' '<h1>Rapport interactif – scatter-cloud-mc</h1>'
+	  if [[ -f "$$output_dir/reflectance_sphere.png" || -f "$$output_dir/reflectance_cube.png" ]]; then
+	    printf '%s\n' '<section class="reflectance"><h2>Réflectance directionnelle</h2>' '<p>R<sub>dir</sub> = flux diffus montant / flux incident dans la direction θ<sub>0</sub>.</p>' '<div class="reflectance-grid">'
+	    for geometry in sphere cube; do
+	      png_file="reflectance_$$geometry.png"
+	      if [[ -f "$$output_dir/$$png_file" ]]; then
+	        label=Sphère
+	        if [[ "$$geometry" == cube ]]; then label=Cube; fi
+	        printf '  <figure><figcaption>%s</figcaption><img src="%s" alt="Réflectance directionnelle du balayage %s"></figure>\n' "$$label" "$$png_file" "$$label"
+	      fi
+	    done
+	    printf '%s\n' '</div></section>'
+	  fi
+	  printf '%s\n' '<div class="controls"><label>Angle : <select id="angleFilter"><option value="all">Tous</option></select></label>' '<label>Tau : <select id="tauFilter"><option value="all">Tous</option></select></label>' '<label class="scale-toggle" for="scaleFilter"><input id="scaleFilter" type="checkbox" role="switch"><span>Échelle logarithmique</span></label>' '<label class="scale-toggle" for="cosAlphaDFilter"><input id="cosAlphaDFilter" type="checkbox" role="switch"><span>Abscisse cos(α_d)</span></label></div>' '<div class="grid" id="grid">'
 	  while IFS= read -r image; do
 	    directory=$$(dirname "$$image")
 	    directory_name=$$(basename "$$directory")
@@ -265,7 +305,7 @@ report: .replot-sweep
 	    escaped_mu_linear_image=$$(html_escape "$$mu_linear_image_relative")
 	    escaped_caption=$$(html_escape "$$caption")
 	    printf '  <div class="card" data-angle="%s" data-tau="%s" data-alpha-d-log-src="%s" data-alpha-d-linear-src="%s" data-mu-log-src="%s" data-mu-linear-src="%s"><img src="%s" alt="%s"><div class="caption">%s<br><code>%s</code></div></div>\n' "$$escaped_angle" "$$escaped_tau" "$$escaped_image" "$$escaped_linear_image" "$$escaped_mu_image" "$$escaped_mu_linear_image" "$$escaped_linear_image" "$$escaped_caption" "$$escaped_caption" "$$escaped_linear_image"
-	  done < <(find "$$output_dir" -type f -name '*.png' ! -name '*_phase.png' ! -name '*_linear.png' ! -name '*_mu.png' | sort)
+	  done < <(find "$$output_dir" -type f -name '*.png' ! -name '*_phase.png' ! -name '*_linear.png' ! -name '*_mu.png' ! -name 'reflectance_*.png' | sort)
 	  printf '%s\n' '</div>' '<div id="lightbox"><img id="lightbox-img" src=""></div>' '<script src="../web/report_interactif.js"></script>' '</body>' '</html>'
 	} > "$$outfile"
 	printf 'Report: %s\n' "$$outfile"

@@ -206,6 +206,10 @@ il utilise `radius = 3 τ / (4 σₑ)`.
 `report` régénère les graphiques et crée une galerie HTML dans
 `output/report_interactif.html`. La galerie présente uniquement les
 distributions angulaires; les fichiers de fonction de phase restent séparés.
+Elle ajoute aussi la réflectance directionnelle
+$R_{dir}=F_{diffus\ montant}/F_{incident}$ en fonction de l’épaisseur optique,
+avec une courbe par angle d’incidence sur un même graphique et un axe tau
+linéaire. Les résultats sphère et cube sont tracés séparément.
 Deux interrupteurs permettent de choisir l’échelle logarithmique de l’ordonnée
 et de remplacer $\alpha_d$ par $\cos(\alpha_d)$ en abscisse; les deux choix sont
 indépendants.
@@ -255,8 +259,9 @@ erreurs-types Monte-Carlo.
 
 `make plot` génère la distribution angulaire et la fonction de phase du modèle
 choisi dans la configuration. La galerie créée par `make sweep report` ne
-présente que les distributions angulaires. La capture du rapport est filtrée
-sur $\tau = 1$ et montre les quatre angles du balayage.
+présente les distributions angulaires et la réflectance directionnelle. La
+capture du rapport est filtrée sur $\tau = 1$ et montre les quatre angles du
+balayage.
 
 ![Distribution angulaire](docs/distribution_angulaire.png)
 
