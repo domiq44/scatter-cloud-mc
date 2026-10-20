@@ -194,7 +194,8 @@ normalise les résidus par le nombre de photons.
 Le balayage couvre les angles 0°, 30°, 60° et 90°, pour $\tau$ = 0,01; 0,02;
 0,05; 0,1; 0,2; 0,5; 1; 2; 5; 10; 20; 50 et 100. Par défaut, `make sweep`
 utilise la sphère; `make sweep GEOMETRY=cube` lance les mêmes combinaisons pour
-le cube. Les répertoires cube sont préfixés par `cube_`, ce qui permet de
+le cube, tandis que `make sweep GEOMETRY=both` lance les deux géométries à la
+suite. Les répertoires cube sont préfixés par `cube_`, ce qui permet de
 conserver les résultats des deux géométries et de les afficher ensemble avec
 `make report`.
 

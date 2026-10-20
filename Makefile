@@ -72,7 +72,7 @@ help:
 	  '    PLOT_TYPE=distribution|distribution-linear|distribution-mu|distribution-mu-linear|phase|both (default both)' \
 	  '  make run-many N_RUNS=20 Check seed stability' \
 	  'Sweeps and reports:' \
-	  '  make sweep [GEOMETRY=sphere|cube] Run the parameter grid (default: sphere)' \
+	  '  make sweep [GEOMETRY=sphere|cube|both] Run the parameter grid (default: sphere)' \
 	  '  make report          Regenerate sweep plots and the HTML report' \
 	  '  make full            Build, test, sweep, and report' \
 	  'Quality and cleanup:' \
@@ -182,18 +182,24 @@ run-many: $(APP_BINS)
 # Parameter sweeps and reports
 sweep: $(APP_BINS)
 	set -e
-	case "$(GEOMETRY)" in sphere|cube) ;; *) printf 'Unsupported GEOMETRY: %s\n' "$(GEOMETRY)" >&2; exit 2 ;; esac
+	case "$(GEOMETRY)" in
+	  sphere|cube) geometries=("$(GEOMETRY)") ;;
+	  both) geometries=(sphere cube) ;;
+	  *) printf 'Unsupported GEOMETRY: %s (expected sphere, cube, or both)\n' "$(GEOMETRY)" >&2; exit 2 ;;
+	esac
 	template="$(CONFIG_DIR)/config.template.dat"
 	sigma_e=$$(awk -F= '/^[[:space:]]*sigma_e[[:space:]]*=/{gsub(/[ \t]/, "", $$2); print $$2; exit}' "$$template")
 	test -n "$$sigma_e"
-	for angle in 0 30 60 90; do
-	  for tau in 0.01 0.02 0.05 0.1 0.2 0.5 1 2 5 10 20 50 100; do
-	    name="angle$${angle}_tau$${tau}"
-	    if [[ "$(GEOMETRY)" == cube ]]; then name="cube_$${name}"; fi
-	    config_file="$(CONFIG_DIR)/config.$${name}.dat"
-	    radius=$$(awk -v geometry="$(GEOMETRY)" -v angle="$$angle" -v tau="$$tau" -v sigma="$$sigma_e" 'BEGIN {if (geometry == "sphere") radius = tau * 3 / (4 * sigma); else {radians = angle * atan2(0, -1) / 180; sine = sin(radians); cosine = cos(radians); if (sine < 0) sine = -sine; if (cosine < 0) cosine = -cosine; radius = tau * (sine + cosine) / (2 * sigma)}; printf "%.8f", radius}')
-	    sed -e "s/{{ANGLE}}/$$angle/g" -e "s/{{TAU}}/$$tau/g" -e "s/{{RADIUS}}/$$radius/g" -e "s/{{GEOMETRY}}/$(GEOMETRY)/g" "$$template" > "$$config_file"
-	    $(MAKE) --no-print-directory run-one CONFIG="$$config_file" NAME="$$name"
+	for geometry in "$${geometries[@]}"; do
+	  for angle in 0 30 60 90; do
+	    for tau in 0.01 0.02 0.05 0.1 0.2 0.5 1 2 5 10 20 50 100; do
+	      name="angle$${angle}_tau$${tau}"
+	      if [[ "$$geometry" == cube ]]; then name="cube_$${name}"; fi
+	      config_file="$(CONFIG_DIR)/config.$${name}.dat"
+	      radius=$$(awk -v geometry="$$geometry" -v angle="$$angle" -v tau="$$tau" -v sigma="$$sigma_e" 'BEGIN {if (geometry == "sphere") radius = tau * 3 / (4 * sigma); else {radians = angle * atan2(0, -1) / 180; sine = sin(radians); cosine = cos(radians); if (sine < 0) sine = -sine; if (cosine < 0) cosine = -cosine; radius = tau * (sine + cosine) / (2 * sigma)}; printf "%.8f", radius}')
+	      sed -e "s/{{ANGLE}}/$$angle/g" -e "s/{{TAU}}/$$tau/g" -e "s/{{RADIUS}}/$$radius/g" -e "s/{{GEOMETRY}}/$$geometry/g" "$$template" > "$$config_file"
+	      $(MAKE) --no-print-directory run-one CONFIG="$$config_file" NAME="$$name" GEOMETRY="$$geometry"
+	    done
 	  done
 	done
 
