@@ -187,6 +187,41 @@ static TestResult test_simulation_csv_rejects_out_of_range_bin(void) {
     return assert_condition(!written, "un bin hors limites est signalé comme écriture incomplète");
 }
 
+/* Vérifie l'export des quatre composantes du bilan de flux. */
+static TestResult test_simulation_flux_csv_contents(void) {
+    /* Given */
+    char filename[64];
+    if (!create_temp_path(filename, sizeof(filename)))
+        return assert_condition(0, "un chemin CSV temporaire est créé");
+    const SimulationResult result = {
+        .photon_count = 3,
+        .roulette_killed_count = 1,
+        .diffuse_upward_energy = 0.5,
+        .diffuse_downward_energy = 1.0,
+        .absorbed_energy = 0.25,
+        .direct_downward_energy = 1.25,
+    };
+    const char *expected = "component,energy,energy_fraction_of_injected\n"
+                           "diffuse_upward,0.5,0.125\n"
+                           "diffuse_downward,1,0.25\n"
+                           "absorbed,0.25,0.0625\n"
+                           "direct_downward,1.25,0.3125\n";
+
+    /* When */
+    int written = write_simulation_flux_csv(filename, &result);
+    FILE *file = written ? fopen(filename, "r") : NULL;
+    char content[512] = {0};
+    size_t content_length = file ? fread(content, 1, sizeof(content) - 1, file) : 0;
+    if (file)
+        fclose(file);
+    remove(filename);
+
+    /* Then */
+    return assert_condition(written && content_length == strlen(expected) &&
+                                strcmp(content, expected) == 0,
+                            "le CSV contient les flux et fractions attendus");
+}
+
 /* Vérifie que l'export agrégé conserve les bins vides et leur ordre angulaire. */
 static TestResult test_simulation_distribution_csv_contains_all_bins(void) {
     /* Given */
@@ -347,6 +382,7 @@ static const TestCase test_cases[] = {
     {"test_simulation_csv_rejects_invalid_result", test_simulation_csv_rejects_invalid_result},
     {"test_simulation_csv_rejects_unwritable_path", test_simulation_csv_rejects_unwritable_path},
     {"test_simulation_csv_rejects_out_of_range_bin", test_simulation_csv_rejects_out_of_range_bin},
+    {"test_simulation_flux_csv_contents", test_simulation_flux_csv_contents},
     {"test_simulation_distribution_csv_contains_all_bins",
      test_simulation_distribution_csv_contains_all_bins},
     {"test_simulation_distribution_csv_handles_no_detected_energy",

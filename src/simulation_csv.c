@@ -45,3 +45,36 @@ int write_simulation_csv(const char *filename, const SimulationResult *result) {
         fprintf(stderr, "Erreur : écriture incomplète dans %s\n", filename);
     return write_succeeded;
 }
+
+int write_simulation_flux_csv(const char *filename, const SimulationResult *result) {
+    if (!filename || !result || result->photon_count + result->roulette_killed_count <= 0)
+        return 0;
+
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        fprintf(stderr, "Erreur : impossible d'ouvrir %s\n", filename);
+        return 0;
+    }
+
+    const double injected_energy = result->photon_count + result->roulette_killed_count;
+    int write_succeeded = fprintf(file, "component,energy,energy_fraction_of_injected\n") >= 0;
+    write_succeeded = write_succeeded &&
+                      fprintf(file, "diffuse_upward,%.12g,%.12g\n", result->diffuse_upward_energy,
+                              result->diffuse_upward_energy / injected_energy) >= 0;
+    write_succeeded =
+        write_succeeded &&
+        fprintf(file, "diffuse_downward,%.12g,%.12g\n", result->diffuse_downward_energy,
+                result->diffuse_downward_energy / injected_energy) >= 0;
+    write_succeeded =
+        write_succeeded && fprintf(file, "absorbed,%.12g,%.12g\n", result->absorbed_energy,
+                                   result->absorbed_energy / injected_energy) >= 0;
+    write_succeeded = write_succeeded &&
+                      fprintf(file, "direct_downward,%.12g,%.12g\n", result->direct_downward_energy,
+                              result->direct_downward_energy / injected_energy) >= 0;
+
+    if (fclose(file) != 0)
+        write_succeeded = 0;
+    if (!write_succeeded)
+        fprintf(stderr, "Erreur : écriture incomplète dans %s\n", filename);
+    return write_succeeded;
+}

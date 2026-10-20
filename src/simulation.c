@@ -103,9 +103,15 @@ static int transport_photons(const Config *config, Rng *rng, Vec3 fixed_directio
                 if (has_scattered) {
                     histograms->diffuse_weight_by_bin[bin] += weight;
                     histograms->diffuse_squared_weight_by_bin[bin] += weight * weight;
+                    if (direction.z > 0.0)
+                        result->diffuse_upward_energy += weight;
+                    else if (direction.z < 0.0)
+                        result->diffuse_downward_energy += weight;
                 } else {
                     result->ballistic_photon_count++;
                     result->ballistic_detected_energy += weight;
+                    if (direction.z < 0.0)
+                        result->direct_downward_energy += weight;
                 }
                 DetectedPhoton detected_photon = {
                     .alpha_d_deg = acos(mu) * 180.0 / M_PI,

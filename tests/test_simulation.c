@@ -33,9 +33,11 @@ static TestResult test_simulation_accounts_for_energy(void) {
     int exit_components_match =
         fabs(result.ballistic_detected_energy + diffuse_probability * result.detected_energy -
              result.detected_energy) < 1e-8;
+    int vertical_fluxes_match = fabs(result.diffuse_upward_energy + result.diffuse_downward_energy +
+                                     result.direct_downward_energy - result.detected_energy) < 1e-8;
     simulation_result_free(&result);
     return assert_condition(simulated && photon_count_matches && roulette_killed_count == 0 &&
-                                exit_components_match &&
+                                exit_components_match && vertical_fluxes_match &&
                                 fabs(total_energy - config.n_photons) < 1e-8,
                             "sans roulette russe, le bilan énergétique est conservé");
 }

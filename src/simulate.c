@@ -67,8 +67,12 @@ int main(int argc, char **argv) {
     char distribution_filename[512] = {0};
     replace_extension(filename, ".csv", ".distribution.csv", distribution_filename,
                       sizeof(distribution_filename));
+    char flux_filename[512] = {0};
+    replace_extension(filename, ".csv", ".flux.csv", flux_filename, sizeof(flux_filename));
 
-    if (!distribution_filename[0] || !write_simulation_csv(filename, &result) ||
+    if (!distribution_filename[0] || !flux_filename[0] ||
+        !write_simulation_csv(filename, &result) ||
+        !write_simulation_flux_csv(flux_filename, &result) ||
         !write_simulation_distribution_csv(distribution_filename, &result)) {
         simulation_result_free(&result);
         return 1;
@@ -76,6 +80,7 @@ int main(int argc, char **argv) {
 
     printf("Fichier généré : %s\n", filename);
     printf("Distribution générée : %s\n", distribution_filename);
+    printf("Bilan des flux généré : %s\n", flux_filename);
     print_simulation_report(&result, &config);
     simulation_result_free(&result);
     return 0;

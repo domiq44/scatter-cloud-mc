@@ -19,8 +19,11 @@ make run
 ```
 
 `make run` utilise `config/config.dat` et place les résultats dans
-`output/default/` : les CSV bruts et agrégés, le PNG et `stats.txt` (nombre de
-photons détectés).
+`output/default/` : les CSV bruts, agrégés et de bilan des flux, le PNG et
+`stats.txt` (nombre de photons détectés). Le fichier `.flux.csv` contient les
+flux diffusés montant et descendant, l'énergie absorbée et le flux direct
+descendant, avec leur fraction de l'énergie injectée. Le haut/bas est déterminé
+par la composante verticale de la direction de propagation à la sortie.
 
 ## Organisation
 

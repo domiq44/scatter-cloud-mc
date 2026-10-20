@@ -42,6 +42,9 @@ static TestResult test_report_contains_energy_summary(void) {
         .roulette_killed_count = 1,
         .scatter_count = 3,
         .detected_energy = 1.25,
+        .diffuse_upward_energy = 0.2,
+        .diffuse_downward_energy = 0.3,
+        .direct_downward_energy = 0.75,
         .roulette_energy = 0.25,
         .absorbed_energy = 0.4,
     };
@@ -52,6 +55,10 @@ static TestResult test_report_contains_energy_summary(void) {
 
     /* Then */
     return assert_condition(captured && strstr(output, "E comptabilisée") != NULL &&
+                                strstr(output, "Flux diffusé montant") != NULL &&
+                                strstr(output, "Flux diffusé descendant") != NULL &&
+                                strstr(output, "Flux absorbé") != NULL &&
+                                strstr(output, "Flux direct descendant") != NULL &&
                                 strstr(output, "Résidu Monte Carlo") != NULL &&
                                 strstr(output, "moyenne attendue") != NULL &&
                                 strstr(output, "E_total (déduit)") == NULL &&

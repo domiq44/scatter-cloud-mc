@@ -22,6 +22,10 @@ void print_simulation_report(const SimulationResult *result, const Config *confi
 
     printf("\n--- Énergies ---\n");
     printf("E_detected           = %.6f (%.3f %%)\n", result->detected_energy, output_percentage);
+    printf("Flux diffusé montant = %.12f\n", result->diffuse_upward_energy);
+    printf("Flux diffusé descendant = %.12f\n", result->diffuse_downward_energy);
+    printf("Flux absorbé         = %.12f\n", result->absorbed_energy);
+    printf("Flux direct descendant = %.12f\n", result->direct_downward_energy);
     printf("Poids arrêté par RR  = %.6f (%.3f %%)\n", result->roulette_energy,
            roulette_energy_percentage);
     printf("E_absorbed (direct)  = %.12f (%.3f %%)\n", result->absorbed_energy,

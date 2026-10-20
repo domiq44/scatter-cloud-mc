@@ -20,6 +20,9 @@ typedef struct {
     double detected_energy;
     int ballistic_photon_count;
     double ballistic_detected_energy;
+    double diffuse_upward_energy;
+    double diffuse_downward_energy;
+    double direct_downward_energy;
     double roulette_energy;
     double absorbed_energy;
     int bin_count;
