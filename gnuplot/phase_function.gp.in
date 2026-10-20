@@ -1,0 +1,35 @@
+set terminal pngcairo size 1000,600 enhanced
+set output output_file
+set logscale y 10
+set xlabel 'Angle de diffusion α_d (degrés)'
+set ylabel 'P(α_d) (sr^{-1}, log)'
+set xrange [0:180]
+set grid xtics ytics
+set key top left
+if (double_hg) {
+	set title sprintf('Fonction de phase double HG (g1 = %.3f, g2 = %.3f, fraction = %.3f)', g, g2, hg_fraction)
+	hg_component(g_value, angle) = abs(g_value) < 1.0 ? (1.0-g_value*g_value)/(4.0*pi*(1.0+g_value*g_value-2.0*g_value*cos(angle*pi/180.0))**1.5) : 0.0
+	set yrange [*:*]
+	if (hg_fraction > 0.0 && abs(g) == 1.0) {
+		set arrow 1 from (g > 0 ? 0 : 180), 1e-3 to (g > 0 ? 0 : 180), 1 head lw 2 lc rgb '#b44932'
+	}
+	if (hg_fraction < 1.0 && abs(g2) == 1.0) {
+		set arrow 2 from (g2 > 0 ? 0 : 180), 1e-3 to (g2 > 0 ? 0 : 180), 1 head lw 2 lc rgb '#245b9e'
+	}
+	plot (hg_fraction*hg_component(g,x) + (1.0-hg_fraction)*hg_component(g2,x)) with lines lw 2 lc rgb '#b44932' title 'Mélange double HG'
+	unset arrow 1
+	unset arrow 2
+} else {
+	set title sprintf('Fonction de phase de Henyey-Greenstein (g = %.3f)', g)
+	if (abs(g) < 1.0) {
+		set yrange [*:*]
+		plot (1.0-g*g)/(4.0*pi*(1.0+g*g-2.0*g*cos(x*pi/180.0))**1.5) with lines lw 2 lc rgb '#b44932' title 'Henyey-Greenstein'
+	} else {
+		set yrange [1e-3:1]
+		set arrow 1 from (g > 0 ? 0 : 180), 1e-3 to (g > 0 ? 0 : 180), 1 head lw 2 lc rgb '#b44932'
+		set label 1 sprintf('Limite delta : α_d = %.0f°', g > 0 ? 0 : 180) at graph 0.5,0.85 center
+		plot 1e-3 with lines lc rgb '#888888' title 'Direction limite'
+		unset arrow 1
+		unset label 1
+	}
+}

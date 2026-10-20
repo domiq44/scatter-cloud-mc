@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Rapport interactif – scatter-cloud-mc</title>
+
+  <link rel="stylesheet" href="report_interactif.css">
+</head>
+
+<body>
+
+  <h1>Rapport interactif – scatter-cloud-mc</h1>
+
+  <div class="controls">
+    <label>Angle :
+      <select id="angleFilter"><option value="all">Tous</option></select>
+    </label>
+
+    <label>Tau :
+      <select id="tauFilter"><option value="all">Tous</option></select>
+    </label>
+  </div>
+
+  <div class="grid" id="grid">
+    <div class="card" data-angle="0" data-tau="0.01">
+      <img src="output/angle0_tau0.01/theta0_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 0.01, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 0.01, Ndiff = 100000<br><code>output/angle0_tau0.01/theta0_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="0.02">
+      <img src="output/angle0_tau0.02/theta0_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 0.02, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 0.02, Ndiff = 100000<br><code>output/angle0_tau0.02/theta0_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="0.05">
+      <img src="output/angle0_tau0.05/theta0_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 0.05, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 0.05, Ndiff = 100000<br><code>output/angle0_tau0.05/theta0_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="0.1">
+      <img src="output/angle0_tau0.1/theta0_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 0.1, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 0.1, Ndiff = 100000<br><code>output/angle0_tau0.1/theta0_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="0.2">
+      <img src="output/angle0_tau0.2/theta0_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 0.2, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 0.2, Ndiff = 100000<br><code>output/angle0_tau0.2/theta0_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="0.5">
+      <img src="output/angle0_tau0.5/theta0_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 0.5, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 0.5, Ndiff = 100000<br><code>output/angle0_tau0.5/theta0_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="100">
+      <img src="output/angle0_tau100/theta0_radius1.5_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 100, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 100, Ndiff = 100000<br><code>output/angle0_tau100/theta0_radius1.5_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="10">
+      <img src="output/angle0_tau10/theta0_radius0.1_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 10, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 10, Ndiff = 100000<br><code>output/angle0_tau10/theta0_radius0.1_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="1">
+      <img src="output/angle0_tau1/theta0_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 1, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 1, Ndiff = 100000<br><code>output/angle0_tau1/theta0_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="20">
+      <img src="output/angle0_tau20/theta0_radius0.3_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 20, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 20, Ndiff = 100000<br><code>output/angle0_tau20/theta0_radius0.3_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="2">
+      <img src="output/angle0_tau2/theta0_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 2, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 2, Ndiff = 100000<br><code>output/angle0_tau2/theta0_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="50">
+      <img src="output/angle0_tau50/theta0_radius0.8_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 50, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 50, Ndiff = 100000<br><code>output/angle0_tau50/theta0_radius0.8_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="0" data-tau="5">
+      <img src="output/angle0_tau5/theta0_radius0.1_albedo1.00_g0.85_N100000.png" alt="angle = 0°, tau = 5, Ndiff = 100000">
+      <div class="caption">angle = 0°, tau = 5, Ndiff = 100000<br><code>output/angle0_tau5/theta0_radius0.1_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="0.01">
+      <img src="output/angle30_tau0.01/theta30_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 0.01, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 0.01, Ndiff = 100000<br><code>output/angle30_tau0.01/theta30_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="0.02">
+      <img src="output/angle30_tau0.02/theta30_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 0.02, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 0.02, Ndiff = 100000<br><code>output/angle30_tau0.02/theta30_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="0.05">
+      <img src="output/angle30_tau0.05/theta30_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 0.05, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 0.05, Ndiff = 100000<br><code>output/angle30_tau0.05/theta30_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="0.1">
+      <img src="output/angle30_tau0.1/theta30_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 0.1, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 0.1, Ndiff = 100000<br><code>output/angle30_tau0.1/theta30_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="0.2">
+      <img src="output/angle30_tau0.2/theta30_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 0.2, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 0.2, Ndiff = 100000<br><code>output/angle30_tau0.2/theta30_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="0.5">
+      <img src="output/angle30_tau0.5/theta30_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 0.5, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 0.5, Ndiff = 100000<br><code>output/angle30_tau0.5/theta30_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="100">
+      <img src="output/angle30_tau100/theta30_radius1.5_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 100, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 100, Ndiff = 100000<br><code>output/angle30_tau100/theta30_radius1.5_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="10">
+      <img src="output/angle30_tau10/theta30_radius0.1_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 10, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 10, Ndiff = 100000<br><code>output/angle30_tau10/theta30_radius0.1_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="1">
+      <img src="output/angle30_tau1/theta30_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 1, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 1, Ndiff = 100000<br><code>output/angle30_tau1/theta30_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="20">
+      <img src="output/angle30_tau20/theta30_radius0.3_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 20, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 20, Ndiff = 100000<br><code>output/angle30_tau20/theta30_radius0.3_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="2">
+      <img src="output/angle30_tau2/theta30_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 2, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 2, Ndiff = 100000<br><code>output/angle30_tau2/theta30_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="50">
+      <img src="output/angle30_tau50/theta30_radius0.8_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 50, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 50, Ndiff = 100000<br><code>output/angle30_tau50/theta30_radius0.8_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="30" data-tau="5">
+      <img src="output/angle30_tau5/theta30_radius0.1_albedo1.00_g0.85_N100000.png" alt="angle = 30°, tau = 5, Ndiff = 100000">
+      <div class="caption">angle = 30°, tau = 5, Ndiff = 100000<br><code>output/angle30_tau5/theta30_radius0.1_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="0.01">
+      <img src="output/angle60_tau0.01/theta60_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 0.01, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 0.01, Ndiff = 100000<br><code>output/angle60_tau0.01/theta60_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="0.02">
+      <img src="output/angle60_tau0.02/theta60_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 0.02, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 0.02, Ndiff = 100000<br><code>output/angle60_tau0.02/theta60_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="0.05">
+      <img src="output/angle60_tau0.05/theta60_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 0.05, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 0.05, Ndiff = 100000<br><code>output/angle60_tau0.05/theta60_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="0.1">
+      <img src="output/angle60_tau0.1/theta60_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 0.1, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 0.1, Ndiff = 100000<br><code>output/angle60_tau0.1/theta60_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="0.2">
+      <img src="output/angle60_tau0.2/theta60_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 0.2, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 0.2, Ndiff = 100000<br><code>output/angle60_tau0.2/theta60_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="0.5">
+      <img src="output/angle60_tau0.5/theta60_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 0.5, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 0.5, Ndiff = 100000<br><code>output/angle60_tau0.5/theta60_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="100">
+      <img src="output/angle60_tau100/theta60_radius1.5_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 100, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 100, Ndiff = 100000<br><code>output/angle60_tau100/theta60_radius1.5_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="10">
+      <img src="output/angle60_tau10/theta60_radius0.1_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 10, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 10, Ndiff = 100000<br><code>output/angle60_tau10/theta60_radius0.1_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="1">
+      <img src="output/angle60_tau1/theta60_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 1, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 1, Ndiff = 100000<br><code>output/angle60_tau1/theta60_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="20">
+      <img src="output/angle60_tau20/theta60_radius0.3_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 20, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 20, Ndiff = 100000<br><code>output/angle60_tau20/theta60_radius0.3_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="2">
+      <img src="output/angle60_tau2/theta60_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 2, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 2, Ndiff = 100000<br><code>output/angle60_tau2/theta60_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="50">
+      <img src="output/angle60_tau50/theta60_radius0.8_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 50, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 50, Ndiff = 100000<br><code>output/angle60_tau50/theta60_radius0.8_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="60" data-tau="5">
+      <img src="output/angle60_tau5/theta60_radius0.1_albedo1.00_g0.85_N100000.png" alt="angle = 60°, tau = 5, Ndiff = 100000">
+      <div class="caption">angle = 60°, tau = 5, Ndiff = 100000<br><code>output/angle60_tau5/theta60_radius0.1_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="0.01">
+      <img src="output/angle90_tau0.01/theta90_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 0.01, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 0.01, Ndiff = 100000<br><code>output/angle90_tau0.01/theta90_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="0.02">
+      <img src="output/angle90_tau0.02/theta90_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 0.02, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 0.02, Ndiff = 100000<br><code>output/angle90_tau0.02/theta90_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="0.05">
+      <img src="output/angle90_tau0.05/theta90_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 0.05, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 0.05, Ndiff = 100000<br><code>output/angle90_tau0.05/theta90_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="0.1">
+      <img src="output/angle90_tau0.1/theta90_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 0.1, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 0.1, Ndiff = 100000<br><code>output/angle90_tau0.1/theta90_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="0.2">
+      <img src="output/angle90_tau0.2/theta90_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 0.2, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 0.2, Ndiff = 100000<br><code>output/angle90_tau0.2/theta90_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="0.5">
+      <img src="output/angle90_tau0.5/theta90_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 0.5, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 0.5, Ndiff = 100000<br><code>output/angle90_tau0.5/theta90_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="100">
+      <img src="output/angle90_tau100/theta90_radius1.5_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 100, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 100, Ndiff = 100000<br><code>output/angle90_tau100/theta90_radius1.5_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="10">
+      <img src="output/angle90_tau10/theta90_radius0.1_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 10, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 10, Ndiff = 100000<br><code>output/angle90_tau10/theta90_radius0.1_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="1">
+      <img src="output/angle90_tau1/theta90_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 1, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 1, Ndiff = 100000<br><code>output/angle90_tau1/theta90_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="20">
+      <img src="output/angle90_tau20/theta90_radius0.3_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 20, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 20, Ndiff = 100000<br><code>output/angle90_tau20/theta90_radius0.3_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="2">
+      <img src="output/angle90_tau2/theta90_radius0.0_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 2, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 2, Ndiff = 100000<br><code>output/angle90_tau2/theta90_radius0.0_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="50">
+      <img src="output/angle90_tau50/theta90_radius0.8_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 50, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 50, Ndiff = 100000<br><code>output/angle90_tau50/theta90_radius0.8_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+    <div class="card" data-angle="90" data-tau="5">
+      <img src="output/angle90_tau5/theta90_radius0.1_albedo1.00_g0.85_N100000.png" alt="angle = 90°, tau = 5, Ndiff = 100000">
+      <div class="caption">angle = 90°, tau = 5, Ndiff = 100000<br><code>output/angle90_tau5/theta90_radius0.1_albedo1.00_g0.85_N100000.png</code></div>
+    </div>
+  </div>
+
+  <div id="lightbox">
+    <img id="lightbox-img" src="">
+  </div>
+
+  <script src="report_interactif.js"></script>
+</body>
+</html>

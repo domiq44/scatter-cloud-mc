@@ -1,0 +1,40 @@
+# Nombre total de photons à simuler (sans unité)
+n_photons = 100000
+
+# Coefficient d’extinction σₑ, inverse de l’unité utilisée pour radius.
+# Le code ne convertit pas les unités; le libre parcours moyen vaut 1 / sigma_e.
+# `make sweep` calcule radius selon la géométrie choisie et l'épaisseur optique τ.
+# Valeur d'échelle synthétique, non issue d'une mesure de nuage.
+sigma_e = 50.0
+
+# Albedo (probabilité de diffusion plutôt qu’absorption)
+# Hypothèse conservative pour le visible; Hu et Stamnes (1993) montrent que les
+# propriétés optiques des nuages d'eau dépendent du spectre et de la microphysique.
+albedo = 1.0
+
+# Paramètre g1 du premier lobe HG, dans le modèle double HG choisi.
+# Sans unité, compris entre -1 et 1.
+g = 0.9
+
+# Reference: Hu and Stamnes (1993), J. Climate 6(4), 728-742,
+# doi:10.1175/1520-0442(1993)006<0728:AAPOTR>2.0.CO;2.
+# Cible générique g_eff=0.85; coefficients ajustés sur le premier moment,
+# non repris de l'article. Réf. Hu et Stamnes (1993), DOI ci-dessus.
+phase_function = double_hg
+g2 = -0.2
+hg_fraction = 0.9545454545454545
+
+# Taille de la forme : rayon de la sphère ou demi-côté du cube.
+# Le balayage choisit radius pour obtenir l'épaisseur optique moyenne demandée.
+radius = {{RADIUS}}
+# Géométrie simulée : sphere ou cube.
+geometry = {{GEOMETRY}}
+
+# Nombre de bins pour mu = cos(alpha_d) (sans unité)
+n_mu_bins = 200
+
+# Graine RNG (entier)
+seed = 42
+
+# Angle d'incidence du scénario de balayage, pas une propriété du nuage.
+theta_zero = {{ANGLE}}

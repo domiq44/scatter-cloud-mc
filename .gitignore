@@ -1,0 +1,64 @@
+# --- Artefacts de build ---
+build/
+# --- Objets compilés ---
+*.o
+*.a
+*.so
+*.out
+
+# --- Répertoires de build ---
+obj/
+dist/
+
+# --- Sorties générées ---
+output/
+plots/
+
+# Ignorer les images générées automatiquement…
+*.png
+*.svg
+*.pdf
+*.csv
+
+# …mais garder les captures documentaires
+!/docs/distribution_angulaire.png
+!/docs/fonction_phase_double_hg.png
+!/docs/fonction_phase_hg.png
+!/docs/rapport_interactif.png
+
+# --- Fichiers temporaires ---
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.bak
+
+# --- Fichiers générés par les tests ---
+test_output/
+coverage/
+*.gcda
+*.gcno
+*.gcov
+
+# --- Logs ---
+*.log
+
+# --- OS-specific ---
+.DS_Store
+Thumbs.db
+
+# --- Editor-specific ---
+.vscode/
+.idea/
+*.code-workspace
+
+# --- Configurations .dat générées automatiquement par make sweep ---
+/config/config.*.dat
+
+# …mais garder les configurations de référence
+!/config/config.dat
+!/config/config.template.dat
+
+# --- Rapport HTML généré automatiquement ---
+/report.html

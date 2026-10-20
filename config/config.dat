@@ -1,0 +1,22 @@
+n_photons = 100000
+# Echelle synthetique, non issue d'une mesure de nuage; unite inverse de radius.
+# Avec radius=1, tau = 4/3*sigma_e*radius = 66.67.
+sigma_e = 50.0
+# Hypothese conservative: absorption des gouttes negligee dans le visible.
+# Les proprietes reelles dependent de la longueur d'onde et de la microphysique.
+albedo = 1.0
+# Parametres DHG: g_eff cible 0.85; coefficients ajustes, non copies de la reference.
+g = 0.9
+# Reference: Hu and Stamnes (1993), J. Climate 6(4), 728-742, doi:10.1175/1520-0442(1993)006<0728:AAPOTR>2.0.CO;2.
+# Generic shortwave-cloud target: effective asymmetry 0.85; DHG values below are moment-matched, not quoted from the paper.
+phase_function = double_hg
+g2 = -0.2
+hg_fraction = 0.9545454545454545
+# Rayon de la sphere en unites arbitraires; ce n'est pas le rayon des gouttelettes.
+radius = 1.0
+# Géométrie du nuage : sphere (défaut) ou cube.
+geometry = sphere
+n_mu_bins = 200
+seed = 42
+# Angle d'incidence choisi pour ce scenario, pas une propriete du nuage.
+theta_zero = 30
