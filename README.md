@@ -25,6 +25,9 @@ flux diffusés montant et descendant, l'énergie absorbée et le flux direct
 descendant, avec leur fraction de l'énergie injectée. Le haut/bas est déterminé
 par la composante verticale de la direction de propagation à la sortie.
 
+Pour explorer des parcours guidés (géométries, angles, tau, reprise, graines et
+re-tracé), voir [examples/README.md](examples/README.md).
+
 ## Organisation
 
 - `src/` et `include/` : modules C et interfaces du simulateur, de la géométrie,
@@ -32,6 +35,7 @@ par la composante verticale de la direction de propagation à la sortie.
 - `tests/` : suites autonomes `test_*.c` et utilitaires partagés.
 - `config/config.dat` : configuration par défaut;
   `config/config.template.dat` : modèle pour les balayages.
+- `examples/` : scripts shell courts qui illustrent les parcours Make courants.
 - `gnuplot/` : modèles des graphiques; `web/` : styles et page d’accès au rapport HTML généré.
 - `build/` : exécutables et objets compilés; `output/` : résultats générés.
 
@@ -193,8 +197,8 @@ make quick
 make quick GEOMETRY=both QUICK_N_PHOTONS=3000
 ```
 
-`run-many` utilise `config/config.dat` et écrit les résidus dans
-`output/diffs.txt`. `analyse_diff.py` lit cette configuration par défaut et
+`run-many` utilise `CONFIG` (par défaut `config/config.dat`) et écrit les résidus
+dans `output/diffs.txt`. `analyse_diff.py` lit cette configuration par défaut et
 normalise les résidus par le nombre de photons.
 
 Le balayage couvre les angles 0°, 30°, 60°, 70°, 80°, 85° et 90°, pour $\tau$ = 0,01; 0,02;

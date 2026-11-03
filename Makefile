@@ -193,7 +193,7 @@ run-many: $(APP_BINS)
 	printf '#run seed diff\n' > "$(OUTPUT_DIR)/diffs.txt"
 	mkdir -p "$(OUTPUT_DIR)/.run-many"
 	for ((seed = 1; seed <= $(N_RUNS); seed++)); do
-	  output=$$("$(BUILD_DIR)/simulate" "$(CONFIG_DIR)/config.dat" "$$seed" "$(OUTPUT_DIR)/.run-many")
+	  output=$$("$(BUILD_DIR)/simulate" "$(CONFIG)" "$$seed" "$(OUTPUT_DIR)/.run-many")
 	  diff=$$(printf '%s\n' "$$output" | awk '/^MC_DIFF /{print $$2; exit}')
 	  printf '%d %d %s\n' "$$seed" "$$seed" "$$diff" >> "$(OUTPUT_DIR)/diffs.txt"
 	done
