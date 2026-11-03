@@ -18,3 +18,30 @@ example_report() {
   local web_asset_prefix=${WEB_ASSET_PREFIX:-$EXAMPLE_WEB_ASSET_PREFIX}
   make report OUTPUT_DIR="$output_dir" CONFIG_DIR="$EXAMPLE_CONFIG_DIR" WEB_ASSET_PREFIX="$web_asset_prefix"
 }
+
+example_summary() {
+  local example_name=$1
+  local output_dir=$2
+  local report_file="$output_dir/report_interactif.html"
+  local csv_count png_count
+
+  if [[ ! -d "$output_dir" ]]; then
+    printf 'Erreur : aucun dossier de résultats pour %s (%s).\n' "$example_name" "$output_dir" >&2
+    return 1
+  fi
+
+  csv_count=$(find "$output_dir" -type f -name '*.csv' -print | wc -l | tr -d '[:space:]')
+  png_count=$(find "$output_dir" -type f -name '*.png' -print | wc -l | tr -d '[:space:]')
+  if [[ "$csv_count" -eq 0 && "$png_count" -eq 0 && ! -f "$report_file" ]]; then
+    printf 'Erreur : aucun artefact produit pour %s dans %s.\n' "$example_name" "$output_dir" >&2
+    return 1
+  fi
+
+  printf '\nTerminé : %s\nRésultats : %s\nArtefacts : %s CSV, %s PNG\n' \
+    "$example_name" "$output_dir" "$csv_count" "$png_count"
+  if [[ -f "$report_file" ]]; then
+    printf 'Rapport HTML : %s\n' "$report_file"
+  else
+    printf 'Rapport HTML : non généré par ce parcours\n'
+  fi
+}

@@ -18,3 +18,4 @@ make sweep CONFIG_DIR="$EXAMPLE_CONFIG_DIR" RESUME=1 GEOMETRY="$geometry" N_PHOT
 make clean CONFIG_DIR="$EXAMPLE_CONFIG_DIR" BUILD_DIR="$EXAMPLE_OUTPUT_ROOT/build"
 make clean-sweep-configs CONFIG_DIR="$EXAMPLE_CONFIG_DIR"
 example_report "$output_dir"
+example_summary "Reprise de sweep" "$output_dir"

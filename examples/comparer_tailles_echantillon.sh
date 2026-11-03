@@ -15,3 +15,4 @@ for photon_count in "${photon_counts[@]}"; do
     ANGLES="$angles" TAUS="$taus" OUTPUT_DIR="$output_dir"
 done
 example_report "$output_dir"
+example_summary "Comparaison des tailles d'échantillon" "$output_dir"

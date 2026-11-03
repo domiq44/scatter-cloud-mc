@@ -15,3 +15,4 @@ make quick \
   CONFIG_DIR="$EXAMPLE_CONFIG_DIR" \
   QUICK_OUTPUT_DIR="$quick_output_dir" \
   QUICK_WEB_ASSET_PREFIX="${WEB_ASSET_PREFIX:-$EXAMPLE_WEB_ASSET_PREFIX}"
+example_summary "Démarrage rapide" "$quick_output_dir"

@@ -17,3 +17,4 @@ for plot_type in distribution distribution-linear distribution-mu distribution-m
   make plot DISTRIBUTION="$distribution" CONFIG="$config" \
     PNG="$output_dir/$plot_type.png" PLOT_TYPE="$plot_type"
 done
+example_summary "Modes de tracé" "$output_dir"

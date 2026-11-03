@@ -43,4 +43,4 @@ for phase in "${phase_functions[@]}"; do
     write_variant "$name" "$albedo" "$phase"
   done
 done
-printf 'Résultats et snapshots de configuration : %s\n' "$output_dir"
+example_summary "Albédo et fonction de phase" "$output_dir"

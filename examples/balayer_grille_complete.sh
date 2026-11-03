@@ -18,4 +18,5 @@ fi
 
 make sweep-plan CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="$geometry" N_PHOTONS="$photon_count" ANGLES="$angles" TAUS="$taus" OUTPUT_DIR="$output_dir"
 make sweep CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="$geometry" N_PHOTONS="$photon_count" ANGLES="$angles" TAUS="$taus" RESUME="${RESUME:-1}" OUTPUT_DIR="$output_dir"
-make report OUTPUT_DIR="$output_dir" WEB_ASSET_PREFIX=../../../web
+example_report "$output_dir"
+example_summary "Grille complète" "$output_dir"

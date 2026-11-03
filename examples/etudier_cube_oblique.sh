@@ -10,3 +10,4 @@ output_dir="${OUTPUT_DIR:-$EXAMPLE_OUTPUT_ROOT/cube_oblique}"
 make sweep CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY=cube N_PHOTONS="${N_PHOTONS:-3000}" \
   ANGLES="${ANGLES:-30 60 80 90}" TAUS="${TAUS:-0.5 2}" OUTPUT_DIR="$output_dir"
 example_report "$output_dir"
+example_summary "Cube en incidence oblique" "$output_dir"

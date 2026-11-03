@@ -4,6 +4,12 @@ Ces dix scripts sont des parcours autonomes, pas une seconde interface au simula
 
 Lancez un parcours avec `bash examples/<nom>.sh`. Les valeurs par défaut gardent les sweeps d’exploration modestes.
 
+Chaque script termine par un résumé « Terminé » avec le dossier des résultats,
+le nombre de CSV et de PNG, et le chemin du rapport HTML s’il a été généré. Les
+parcours qui tracent des images individuelles indiquent explicitement qu’ils
+n’ont pas créé de galerie HTML. Une erreur Make ou Python arrête le script avec
+un code de sortie non nul.
+
 | Script | Couverture |
 | --- | --- |
 | `demarrer_rapidement.sh` | Première simulation et galerie courte |
@@ -30,4 +36,4 @@ N_PHOTONS=500 GEOMETRY=both bash examples/balayer_grille_complete.sh
 
 `N_PHOTONS`, `ANGLES`, `TAUS` et `GEOMETRY` règlent les sweeps; `PHOTON_COUNTS` règle la comparaison de N; `ALBEDOS` et `PHASE_FUNCTIONS` règlent le scénario physique. `BASE_CONFIG` permet de partir d’une autre configuration pour ce dernier. `EXAMPLE_OUTPUT_ROOT` déplace l’ensemble des sorties et configs; `OUTPUT_DIR` remplace le dossier d’un parcours.
 
-Les configs d’essai sont isolées sous `output/examples/configs/` par défaut. Les variantes HG simples retirent les paramètres propres au double-HG; `config/config.dat` reste inchangé. Le préflight de la grille complète estime la durée; `RESUME=1` reprend les cas déjà terminés.
+Les configs d’essai sont isolées sous `output/examples/configs/` par défaut. Les variantes HG simples retirent les paramètres propres au double-HG; `config/config.dat` reste inchangé. Le préflight de la grille complète estime la durée; `RESUME=1` reprend les cas déjà terminés. Si `EXAMPLE_OUTPUT_ROOT` change de profondeur dans l’arborescence, adaptez aussi `EXAMPLE_WEB_ASSET_PREFIX`.
