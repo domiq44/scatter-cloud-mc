@@ -18,18 +18,19 @@ static int build_output_filename(const Config *config, int seed, const char *out
     const char *geometry = config->geometry == GEOMETRY_CUBE ? "cube" : "sphere";
     int length;
     if (config->phase_function == PHASE_FUNCTION_DOUBLE_HG) {
-        length =
-            snprintf(filename, filename_size,
-                     "%s/%s_theta%.17g_sigma%.17g_radius%.17g_albedo%.17g_doubleHG_g1%.17g_g2%.17g_p%.17g_N%d_bins%d_seed%d.csv",
-                     output_dir, geometry, config->theta_zero, config->sigma_e, config->radius,
-                     config->albedo, config->g, config->g2, config->hg_fraction, config->n_photons,
-                     config->n_mu_bins, seed);
-    } else {
         length = snprintf(filename, filename_size,
-                          "%s/%s_theta%.17g_sigma%.17g_radius%.17g_albedo%.17g_hg_g%.17g_N%d_bins%d_seed%d.csv",
-                          output_dir, geometry, config->theta_zero, config->sigma_e,
-                          config->radius, config->albedo, config->g, config->n_photons,
-                          config->n_mu_bins, seed);
+                          "%s/"
+                          "%s_theta%.17g_sigma%.17g_radius%.17g_albedo%.17g_doubleHG_g1%.17g_g2%."
+                          "17g_p%.17g_N%d_bins%d_seed%d.csv",
+                          output_dir, geometry, config->theta_zero, config->sigma_e, config->radius,
+                          config->albedo, config->g, config->g2, config->hg_fraction,
+                          config->n_photons, config->n_mu_bins, seed);
+    } else {
+        length = snprintf(
+            filename, filename_size,
+            "%s/%s_theta%.17g_sigma%.17g_radius%.17g_albedo%.17g_hg_g%.17g_N%d_bins%d_seed%d.csv",
+            output_dir, geometry, config->theta_zero, config->sigma_e, config->radius,
+            config->albedo, config->g, config->n_photons, config->n_mu_bins, seed);
     }
     return length >= 0 && (size_t)length < filename_size;
 }

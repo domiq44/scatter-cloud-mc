@@ -43,13 +43,13 @@ void print_simulation_report(const SimulationResult *result, const Config *confi
     printf("\nMC_DIFF %.12f\n", difference);
 
     if (result->photon_count == 0) {
-              const char *geometry = config->geometry == GEOMETRY_CUBE ? "cube" : "sphère";
-              double theta_rad = config->theta_zero * acos(-1.0) / 180.0;
-              Vec3 incident_direction = geometry_incident_direction(theta_rad);
-              double mean_optical_thickness =
-                     config->sigma_e *
-                     geometry_mean_chord_length(config->geometry, config->radius, incident_direction);
-              printf("\nAucun photon n'a atteint la forme (%s).\n", geometry);
-              printf("   Épaisseur optique moyenne : tau = %.2f.\n", mean_optical_thickness);
+        const char *geometry = config->geometry == GEOMETRY_CUBE ? "cube" : "sphère";
+        double theta_rad = config->theta_zero * acos(-1.0) / 180.0;
+        Vec3 incident_direction = geometry_incident_direction(theta_rad);
+        double mean_optical_thickness =
+            config->sigma_e *
+            geometry_mean_chord_length(config->geometry, config->radius, incident_direction);
+        printf("\nAucun photon n'a atteint la forme (%s).\n", geometry);
+        printf("   Épaisseur optique moyenne : tau = %.2f.\n", mean_optical_thickness);
     }
 }

@@ -6,7 +6,7 @@ SHELL := /bin/bash
 
 # Toolchain
 CC := gcc
-CLANG_FORMAT ?= clang-format-22
+CLANG_FORMAT ?= clang-format
 
 # Directories
 BUILD_DIR := build
@@ -63,7 +63,7 @@ help:
 	  '  make build           Build application and tests' \
 	  '  make test            Build and run every test suite' \
 	  '  make coverage        Run tests with gcov and write coverage/*.gcov' \
-	  '  make format          Apply clang-format-22 before pushing' \
+	  '  make format          Apply clang-format before pushing' \
 	  '  make format-check    Verify formatting without modifying files' \
 	  'Run and plot:' \
 	  '  make run             Run the default simulation and plot' \
@@ -312,8 +312,11 @@ report: .replot-sweep
 	    escaped_mu_image=$$(html_escape "$$mu_image_relative")
 	    escaped_mu_linear_image=$$(html_escape "$$mu_linear_image_relative")
 	    escaped_caption=$$(html_escape "$$caption")
-	    printf '  <div class="card" data-geometry="%s" data-angle="%s" data-tau="%s" data-alpha-d-log-src="%s" data-alpha-d-linear-src="%s" data-mu-log-src="%s" data-mu-linear-src="%s"><img src="%s" alt="%s"><div class="caption">%s<br><code>%s</code></div></div>\n' "$$geometry" "$$escaped_angle" "$$escaped_tau" "$$escaped_image" "$$escaped_linear_image" "$$escaped_mu_image" "$$escaped_mu_linear_image" "$$escaped_linear_image" "$$escaped_caption" "$$escaped_caption" "$$escaped_linear_image"
-	  done < <(find "$$output_dir" -type f -name '*.png' ! -name '*_phase.png' ! -name '*_linear.png' ! -name '*_mu.png' ! -name 'reflectance_*.png' | sort)
+	    printf '  <div class="card" data-geometry="%s" data-angle="%s" data-tau="%s" data-alpha-d-log-src="%s" data-alpha-d-linear-src="%s" data-mu-log-src="%s" data-mu-linear-src="%s"><img src="%s" alt="%s"><div class="caption">%s</div></div>\n' "$$geometry" "$$escaped_angle" "$$escaped_tau" "$$escaped_image" "$$escaped_linear_image" "$$escaped_mu_image" "$$escaped_mu_linear_image" "$$escaped_linear_image" "$$escaped_caption" "$$escaped_caption"
+	  done < <(find "$$output_dir" -maxdepth 2 -type f -name '*.png' \
+	    \( -path "$$output_dir/angle*_tau*/*" -o -path "$$output_dir/cube_angle*_tau*/*" \) \
+	    ! -name '*_phase.png' ! -name '*_linear.png' ! -name '*_mu.png' \
+	    ! -name 'reflectance_*.png' | sort)
 	  printf '%s\n' '</div>' '<div id="lightbox"><img id="lightbox-img" src=""></div>' '<script src="../web/report_interactif.js"></script>' '</body>' '</html>'
 	} > "$$outfile"
 	printf 'Report: %s\n' "$$outfile"
@@ -334,4 +337,5 @@ quality: format-check
 # Cleanup
 clean:
 	rm -rf "$(BUILD_DIR)" "$(OUTPUT_DIR)" "$(COVERAGE_REPORT_DIR)"
-	find "$(CONFIG_DIR)" -maxdepth 1 -type f -name 'config.*.dat' ! -name 'config.dat' ! -name 'config.template.dat' -delete
+	find "$(CONFIG_DIR)" -maxdepth 1 -type f \
+	  \( -name 'config.angle*_tau*.dat' -o -name 'config.cube_angle*_tau*.dat' \) -delete

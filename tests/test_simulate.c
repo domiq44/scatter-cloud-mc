@@ -46,12 +46,13 @@ static TestResult test_simulate_entrypoint_writes_csv(void) {
     int config_dir_created = mkdir(config_dir, 0700) == 0;
     int config_written = config_dir_created && write_test_config(config_path, "sphere", 0.5);
     int directory_changed = config_written && chdir(temp_dir) == 0;
-    const char *sphere_stem =
-        "sphere_theta0_sigma0.5_radius0.00014999999999999999_albedo1_hg_g0.29999999999999999_N16_bins200_seed123";
+    const char *sphere_stem = "sphere_theta0_sigma0.5_radius0.00014999999999999999_albedo1_hg_g0."
+                              "29999999999999999_N16_bins200_seed123";
     const char *alternate_sphere_stem =
-        "sphere_theta0_sigma0.59999999999999998_radius0.00014999999999999999_albedo1_hg_g0.29999999999999999_N16_bins200_seed123";
-    const char *cube_stem =
-        "cube_theta0_sigma0.5_radius0.00014999999999999999_albedo1_hg_g0.29999999999999999_N16_bins200_seed123";
+        "sphere_theta0_sigma0.59999999999999998_radius0.00014999999999999999_albedo1_hg_g0."
+        "29999999999999999_N16_bins200_seed123";
+    const char *cube_stem = "cube_theta0_sigma0.5_radius0.00014999999999999999_albedo1_hg_g0."
+                            "29999999999999999_N16_bins200_seed123";
     char sphere_csv_name[512];
     char sphere_distribution_name[640];
     char sphere_flux_name[640];
@@ -60,8 +61,8 @@ static TestResult test_simulate_entrypoint_writes_csv(void) {
     char cube_distribution_name[640];
     char cube_flux_name[640];
     snprintf(sphere_csv_name, sizeof(sphere_csv_name), "output/%s.csv", sphere_stem);
-    snprintf(sphere_distribution_name, sizeof(sphere_distribution_name), "output/%s.distribution.csv",
-             sphere_stem);
+    snprintf(sphere_distribution_name, sizeof(sphere_distribution_name),
+             "output/%s.distribution.csv", sphere_stem);
     snprintf(sphere_flux_name, sizeof(sphere_flux_name), "output/%s.flux.csv", sphere_stem);
     snprintf(alternate_sphere_csv_name, sizeof(alternate_sphere_csv_name), "output/%s.csv",
              alternate_sphere_stem);
@@ -106,11 +107,11 @@ static TestResult test_simulate_entrypoint_writes_csv(void) {
     if (flux)
         fclose(flux);
 
-    int alternate_config_written = directory_changed && write_test_config(config_path, "sphere", 0.6);
+    int alternate_config_written =
+        directory_changed && write_test_config(config_path, "sphere", 0.6);
     char *alternate_arguments[] = {"simulate", "config/config.dat", "123", "output", NULL};
-    int alternate_app_status = alternate_config_written
-                                   ? simulate_entrypoint(4, alternate_arguments)
-                                   : 1;
+    int alternate_app_status =
+        alternate_config_written ? simulate_entrypoint(4, alternate_arguments) : 1;
     FILE *alternate_csv = alternate_app_status == 0 ? fopen(alternate_sphere_csv_name, "r") : NULL;
     FILE *original_sphere_csv = alternate_app_status == 0 ? fopen(sphere_csv_name, "r") : NULL;
     int distinct_sigma_outputs = alternate_csv && original_sphere_csv;
@@ -164,8 +165,8 @@ static TestResult test_simulate_entrypoint_writes_csv(void) {
                                 csv_row_count == 16 && distribution_written && flux_written &&
                                 distribution_row_count == 200 && alternate_config_written &&
                                 alternate_app_status == 0 && distinct_sigma_outputs &&
-                                cube_config_written && cube_app_status == 0 && cube_outputs_written &&
-                                directory_restored,
+                                cube_config_written && cube_app_status == 0 &&
+                                cube_outputs_written && directory_restored,
                             "les noms distinguent les paramètres, la graine et la géométrie");
 }
 

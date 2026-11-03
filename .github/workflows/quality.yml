@@ -15,10 +15,8 @@ jobs:
 
       - name: Install analysis tools
         run: |
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
-          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" | sudo tee /etc/apt/sources.list.d/llvm-22.list
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends clang-format-22 clang-tidy cppcheck
+          sudo apt-get install --yes --no-install-recommends clang-format clang-tidy cppcheck
 
       - name: Run quality checks
         run: make quality

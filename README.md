@@ -282,8 +282,10 @@ rapport est filtrée sur $\tau = 1$ et illustre les résultats du balayage.
 
 ## Qualité et nettoyage
 
-Avant un commit ou un push, lancez `make format` pour appliquer clang-format 22,
-la version également utilisée par la CI.
+Avant un commit ou un push, lancez `make format` pour appliquer le `clang-format`
+disponible dans le `PATH`. La CI utilise le paquet générique de la distribution.
+Pour sélectionner explicitement un autre exécutable, utilisez
+`make format CLANG_FORMAT=clang-format-23`.
 
 `make quality` vérifie le formatage sans modifier les fichiers, puis exécute
 cppcheck et clang-tidy.
