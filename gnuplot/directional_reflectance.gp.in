@@ -13,4 +13,7 @@ set key top left
 plot data_file using ($1 == 0 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#245b9e' title 'θ₀ = 0°', \
      data_file using ($1 == 30 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#d1495b' title 'θ₀ = 30°', \
      data_file using ($1 == 60 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#2a9d8f' title 'θ₀ = 60°', \
+     data_file using ($1 == 70 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#7a5195' title 'θ₀ = 70°', \
+     data_file using ($1 == 80 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#a3a847' title 'θ₀ = 80°', \
+     data_file using ($1 == 85 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#6c757d' title 'θ₀ = 85°', \
      data_file using ($1 == 90 ? $2 : 1/0):3 with linespoints pt 7 ps 0.8 lw 2 lc rgb '#e9a23b' title 'θ₀ = 90°'

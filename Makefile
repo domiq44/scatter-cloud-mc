@@ -154,8 +154,9 @@ run-one: $(APP_BINS)
 	out_dir="$(OUTPUT_DIR)/$(NAME)"
 	mkdir -p "$$out_dir"
 	seed=$$(awk -F= '/^[[:space:]]*seed[[:space:]]*=/{gsub(/[ \t]/, "", $$2); print $$2; exit}' "$(CONFIG)")
-	"$(BUILD_DIR)/simulate" "$(CONFIG)" "$$seed" "$$out_dir"
-	csv_file=$$(find "$$out_dir" -maxdepth 1 -type f -name '*.csv' ! -name '*.distribution.csv' -print -quit)
+	simulation_output=$$("$(BUILD_DIR)/simulate" "$(CONFIG)" "$$seed" "$$out_dir")
+	printf '%s\n' "$$simulation_output"
+	csv_file=$$(printf '%s\n' "$$simulation_output" | sed -n 's/^Fichier généré : //p')
 	test -n "$$csv_file"
 	distribution_file="$${csv_file%.csv}.distribution.csv"
 	test -f "$$distribution_file"
@@ -191,7 +192,7 @@ sweep: $(APP_BINS)
 	sigma_e=$$(awk -F= '/^[[:space:]]*sigma_e[[:space:]]*=/{gsub(/[ \t]/, "", $$2); print $$2; exit}' "$$template")
 	test -n "$$sigma_e"
 	for geometry in "$${geometries[@]}"; do
-	  for angle in 0 30 60 90; do
+	  for angle in 0 30 60 70 80 85 90; do
 	    for tau in 0.01 0.02 0.05 0.1 0.2 0.5 1 2 5 10 20 50 100; do
 	      name="angle$${angle}_tau$${tau}"
 	      if [[ "$$geometry" == cube ]]; then name="cube_$${name}"; fi

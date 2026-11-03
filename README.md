@@ -32,7 +32,7 @@ par la composante verticale de la direction de propagation à la sortie.
 - `tests/` : suites autonomes `test_*.c` et utilitaires partagés.
 - `config/config.dat` : configuration par défaut;
   `config/config.template.dat` : modèle pour les balayages.
-- `gnuplot/` : modèle du graphique; `web/` : interface du rapport HTML.
+- `gnuplot/` : modèles des graphiques; `web/` : styles et page d’accès au rapport HTML généré.
 - `build/` : exécutables et objets compilés; `output/` : résultats générés.
 
 Les clés de configuration sont `n_photons`, `sigma_e`, `albedo`, `g`, `radius`,
@@ -191,7 +191,7 @@ make report
 `output/diffs.txt`. `analyse_diff.py` lit cette configuration par défaut et
 normalise les résidus par le nombre de photons.
 
-Le balayage couvre les angles 0°, 30°, 60° et 90°, pour $\tau$ = 0,01; 0,02;
+Le balayage couvre les angles 0°, 30°, 60°, 70°, 80°, 85° et 90°, pour $\tau$ = 0,01; 0,02;
 0,05; 0,1; 0,2; 0,5; 1; 2; 5; 10; 20; 50 et 100. Par défaut, `make sweep`
 utilise la sphère; `make sweep GEOMETRY=cube` lance les mêmes combinaisons pour
 le cube, tandis que `make sweep GEOMETRY=both` lance les deux géométries à la
@@ -208,8 +208,10 @@ et conservent la précision utile de `radius`, y compris pour les valeurs
 inférieures à 0,1.
 
 `report` régénère les graphiques et crée une galerie HTML dans
-`output/report_interactif.html`. La galerie présente uniquement les
-distributions angulaires; les fichiers de fonction de phase restent séparés.
+`output/report_interactif.html`. La galerie présente les distributions
+angulaires et la réflectance directionnelle; les fichiers de fonction de phase
+restent séparés. Le fichier `web/report_interactif.html` fournit un lien vers
+ce rapport généré.
 Elle ajoute aussi la réflectance directionnelle
 $R_{dir}=F_{diffus\ montant}/F_{incident}$ en fonction de l’épaisseur optique,
 avec une courbe par angle d’incidence sur un même graphique et un axe tau
@@ -225,7 +227,8 @@ rapport.
 
 Les CSV bruts ont les colonnes `alpha_d_deg`, `mu`, `pdf` et `weight`. Chaque
 ligne correspond à un photon détecté; `alpha_d_deg` et `mu` suivent la
-convention ci-dessus. La distribution regroupe les photons de tous les azimuts
+convention ci-dessus. `pdf` est la probabilité pondérée du bin, pas une densité
+par unité d'angle. La distribution regroupe les photons de tous les azimuts
 autour de la direction incidente initiale `d`, quel que soit `theta_zero`.
 Dans le graphique de fonction de phase, $\alpha_d$ désigne l’angle entre les
 directions immédiatement avant et après un événement de diffusion unique.
@@ -263,10 +266,9 @@ erreurs-types Monte-Carlo.
 ## Graphiques
 
 `make plot` génère la distribution angulaire et la fonction de phase du modèle
-choisi dans la configuration. La galerie créée par `make sweep report` ne
-présente les distributions angulaires et la réflectance directionnelle. La
-capture du rapport est filtrée sur $\tau = 1$ et montre les quatre angles du
-balayage.
+choisi dans la configuration. La galerie créée par `make sweep report` présente
+les distributions angulaires et la réflectance directionnelle. La capture du
+rapport est filtrée sur $\tau = 1$ et illustre les résultats du balayage.
 
 ![Distribution angulaire](docs/distribution_angulaire.png)
 
