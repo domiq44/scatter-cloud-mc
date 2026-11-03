@@ -208,7 +208,12 @@ configuration afin de séparer les sweeps qui utilisent des paramètres différe
 
 `N_PHOTONS` reprend la valeur du template s'il n'est pas fourni; `ANGLES` et
 `TAUS` acceptent des listes séparées par des espaces. `make sweep-plan` valide
-ces valeurs et affiche le nombre de cas sans lancer de simulation. `RESUME=1`
+ces valeurs et affiche le nombre de cas sans lancer de simulation. Après une
+première calibration, il estime aussi la durée du sweep à partir des temps par photon
+enregistrés dans les sweeps précédents; cette extrapolation reste indicative,
+car les trajectoires dépendent de la géométrie et de $\tau$. Au premier usage,
+l'estimation est indisponible; lancez `make quick` ou fournissez
+`ESTIMATE_SECONDS_PER_PHOTON=...` pour la définir manuellement. `RESUME=1`
 saute les cas déjà terminés seulement quand leur snapshot correspond exactement
 à la configuration demandée. `make quick`
 exécute un profil de 9 cas (angles 0°, 60°, 90°; tau 0,1, 1, 10; 2 000
@@ -239,12 +244,14 @@ Elle ajoute aussi la réflectance directionnelle
 $R_{dir}=F_{diffus\ montant}/F_{incident}$ en fonction de l’épaisseur optique,
 avec une courbe par angle d’incidence sur un même graphique et un axe tau
 linéaire. Les résultats sphère et cube sont tracés séparément; le sélecteur
-« Forme » filtre ensemble les courbes et les distributions angulaires.
+« Forme » et le filtre « Photons injectés » filtrent ensemble les distributions
+et les courbes de réflectance. Les courbes de réflectance sont produites
+séparément pour chaque taille d'échantillon.
 Deux interrupteurs permettent de choisir l’échelle logarithmique de l’ordonnée
 et de remplacer $\alpha_d$ par $\cos(\alpha_d)$ en abscisse; les deux choix sont
 indépendants.
-`make full` enchaîne le build, les tests, le balayage et la génération du
-rapport.
+`make full` enchaîne séquentiellement le build, les tests, le balayage et la
+génération du rapport, même avec `make -j full`.
 
 ## Résultats
 

@@ -51,6 +51,7 @@ ANGLES ?= 0 30 60 70 80 85 90
 TAUS ?= 0.01 0.02 0.05 0.1 0.2 0.5 1 2 5 10 20 50 100
 N_PHOTONS ?= $(shell awk -F= '/^[[:space:]]*n_photons[[:space:]]*=/{gsub(/[ \t]/, "", $$2); print $$2; exit}' "$(CONFIG_DIR)/config.template.dat")
 RESUME ?= 0
+ESTIMATE_SECONDS_PER_PHOTON ?=
 QUICK_N_PHOTONS ?= 2000
 QUICK_ANGLES ?= 0 60 90
 QUICK_TAUS ?= 0.1 1 10
@@ -82,12 +83,13 @@ help:
 	  '    PLOT_TYPE=distribution|distribution-linear|distribution-mu|distribution-mu-linear|phase|both (default both)' \
 	  '  make run-many N_RUNS=20 Check seed stability' \
 	  'Sweeps and reports:' \
-	  '  make sweep-plan         Preview sweep size without running simulations' \
+	  '  make sweep-plan         Preview sweep size and approximate duration' \
 	  '  make sweep [GEOMETRY=sphere|cube|both] [N_PHOTONS=...] [ANGLES="..."] [TAUS="..."]' \
 	  '  make quick              Run a small sweep in output/quick/ and generate its report' \
 	  '    RESUME=1 skips cases with matching saved configurations' \
+	  '    ESTIMATE_SECONDS_PER_PHOTON=... overrides the local timing estimate' \
 	  '  make report          Regenerate sweep plots and the HTML report' \
-	  '  make full            Build, test, sweep, and report' \
+	  '  make full            Build and test, then sweep and report in order (safe with -j)' \
 	  'Quality and cleanup:' \
 	  '  make quality         Check formatting and run static analysis' \
 	  '  make clean           Remove build files only' \
@@ -239,6 +241,34 @@ sweep-plan:
 	printf 'Angles : %s\n' "$(ANGLES)"
 	printf 'Tau : %s\n' "$(TAUS)"
 	printf 'Nombre de simulations : %d\n' "$$case_count"
+	estimate_rate="$(ESTIMATE_SECONDS_PER_PHOTON)"
+	if [[ -z "$$estimate_rate" ]]; then
+	  timing_files=("$(OUTPUT_DIR)/.sweep-timings.tsv" "$(QUICK_OUTPUT_DIR)/.sweep-timings.tsv")
+	  available_timing_files=()
+	  for timing_file in "$${timing_files[@]}"; do
+	    if [[ -f "$$timing_file" ]]; then available_timing_files+=("$$timing_file"); fi
+	  done
+	  if [[ $${#available_timing_files[@]} -gt 0 ]]; then
+	    estimate_rate=$$(awk -F '\t' '$$4 ~ /^[0-9]+$$/ && $$4 > 0 && $$5 ~ /^[0-9]+([.][0-9]+)?$$/ {seconds += $$5; photons += $$4} END {if (photons > 0) printf "%.9g", seconds / photons}' "$${available_timing_files[@]}")
+	  fi
+	fi
+	if [[ -n "$$estimate_rate" ]]; then
+	  if ! [[ "$$estimate_rate" =~ ^[0-9]+([.][0-9]+)?$$ ]] || ! awk -v value="$$estimate_rate" 'BEGIN {exit !(value > 0)}'; then
+	    printf 'ESTIMATE_SECONDS_PER_PHOTON must be a positive number: %s\n' "$$estimate_rate" >&2
+	    exit 2
+	  fi
+	  estimate_seconds=$$(awk -v rate="$$estimate_rate" -v cases="$$case_count" -v photons="$$photon_count" 'BEGIN {printf "%.0f", rate * cases * photons}')
+	  estimate_minutes=$$(( (estimate_seconds + 59) / 60 ))
+	  estimate_rate_display=$$(awk -v rate="$$estimate_rate" 'BEGIN {printf "%.4g", rate}')
+	  if [[ "$$estimate_minutes" -lt 60 ]]; then
+	    printf 'Durée estimée : environ %d min (basée sur %s s/phot.)\n' "$$estimate_minutes" "$$estimate_rate_display"
+	  else
+	    printf 'Durée estimée : environ %d h %02d min (basée sur %s s/phot.)\n' \
+	      "$$((estimate_minutes / 60))" "$$((estimate_minutes % 60))" "$$estimate_rate_display"
+	  fi
+	else
+	  printf 'Durée estimée : indisponible (lancez make quick pour calibrer ou fournissez ESTIMATE_SECONDS_PER_PHOTON)\n'
+	fi
 
 sweep: $(APP_BINS)
 	$(MAKE) --no-print-directory sweep-plan GEOMETRY="$(GEOMETRY)" N_PHOTONS="$(N_PHOTONS)" ANGLES="$(ANGLES)" TAUS="$(TAUS)" RESUME="$(RESUME)" >/dev/null
@@ -274,7 +304,11 @@ sweep: $(APP_BINS)
 	      if [[ "$(RESUME)" == 1 && -n "$$distribution_file" && -f "$$snapshot" ]] && cmp -s "$$config_file" "$$snapshot"; then
 	        printf 'Skip %s (configuration déjà calculée)\n' "$$name"
 	      else
+	        start_ns=$$(date +%s%N)
 	        $(MAKE) --no-print-directory run-one CONFIG="$$config_file" NAME="$$name" OUTPUT_DIR="$(OUTPUT_DIR)" GEOMETRY="$$geometry"
+	        end_ns=$$(date +%s%N)
+	        elapsed_seconds=$$(awk -v start="$$start_ns" -v end="$$end_ns" 'BEGIN {printf "%.6f", (end - start) / 1000000000}')
+	        printf '%s\t%s\t%s\t%s\t%s\n' "$$geometry" "$$angle" "$$tau" "$$photon_count" "$$elapsed_seconds" >> "$(OUTPUT_DIR)/.sweep-timings.tsv"
 	        cp "$$config_file" "$$snapshot"
 	      fi
 	    done
@@ -322,45 +356,80 @@ report: .replot-sweep
 	mkdir -p "$$output_dir"
 	shopt -s nullglob
 	flux_files=("$$output_dir"/angle*_tau*/*.flux.csv "$$output_dir"/cube_angle*_tau*/*.flux.csv)
+	photon_count_for_file() {
+	  local input_file=$$1
+	  local case_dir case_name config_file photon_count
+	  case_dir=$$(dirname "$$input_file")
+	  case_name=$$(basename "$$case_dir")
+	  config_file="$$case_dir/sweep-config.dat"
+	  if [[ ! -f "$$config_file" ]]; then config_file="$(CONFIG_DIR)/config.$${case_name}.dat"; fi
+	  if [[ -f "$$config_file" ]]; then
+	    photon_count=$$(awk -F= '/^[[:space:]]*n_photons[[:space:]]*=/{gsub(/[ \t]/, "", $$2); print $$2; exit}' "$$config_file")
+	  fi
+	  if [[ -z "$$photon_count" ]]; then
+	    photon_count=$$(basename "$$input_file" | sed -n 's/.*_N\([0-9][0-9]*\)[_.].*/\1/p')
+	  fi
+	  printf '%s' "$${photon_count:-unknown}"
+	}
+	declare -A seen_photon_counts=()
+	photon_counts=()
+	for flux_file in "$${flux_files[@]}"; do
+	  photon_count=$$(photon_count_for_file "$$flux_file")
+	  if [[ -z "$${seen_photon_counts[$$photon_count]+x}" ]]; then
+	    seen_photon_counts[$$photon_count]=1
+	    photon_counts+=("$$photon_count")
+	  fi
+	done
+	reflectance_images=()
+	rm -f "$$output_dir"/reflectance_sphere_N*.dat "$$output_dir"/reflectance_cube_N*.dat \
+	  "$$output_dir"/reflectance_sphere_N*.png "$$output_dir"/reflectance_cube_N*.png
 	for geometry in sphere cube; do
-	  data_file="$$output_dir/reflectance_$$geometry.dat"
-	  : > "$$data_file"
-	  for flux_file in "$${flux_files[@]}"; do
-	    experiment_dir=$$(basename "$$(dirname "$$flux_file")")
-	    file_geometry=sphere
-	    if [[ "$$experiment_dir" == cube_* ]]; then
-	      file_geometry=cube
-	      experiment_dir=$${experiment_dir#cube_}
-	    fi
-	    if [[ "$$file_geometry" != "$$geometry" ]]; then continue; fi
-	    angle=$${experiment_dir#angle}
-	    angle=$${angle%%_tau*}
-	    tau=$${experiment_dir#*_tau}
-	    tau=$${tau%%_*}
-	    reflectance=$$(awk -F, '$$1 == "diffuse_upward" {print $$3; exit}' "$$flux_file")
-	    if [[ -n "$$reflectance" ]]; then
-	      printf '%s %s %s\n' "$$angle" "$$tau" "$$reflectance" >> "$$data_file"
+	  for photon_count in "$${photon_counts[@]}"; do
+	    data_file="$$output_dir/reflectance_$${geometry}_N$${photon_count}.dat"
+	    : > "$$data_file"
+	    for flux_file in "$${flux_files[@]}"; do
+	      experiment_dir=$$(basename "$$(dirname "$$flux_file")")
+	      file_geometry=sphere
+	      if [[ "$$experiment_dir" == cube_* ]]; then
+	        file_geometry=cube
+	        experiment_dir=$${experiment_dir#cube_}
+	      fi
+	      if [[ "$$file_geometry" != "$$geometry" ]] || [[ "$$(photon_count_for_file "$$flux_file")" != "$$photon_count" ]]; then continue; fi
+	      angle=$${experiment_dir#angle}
+	      angle=$${angle%%_tau*}
+	      tau=$${experiment_dir#*_tau}
+	      tau=$${tau%%_*}
+	      reflectance=$$(awk -F, '$$1 == "diffuse_upward" {print $$3; exit}' "$$flux_file")
+	      if [[ -n "$$reflectance" ]]; then
+	        printf '%s %s %s\n' "$$angle" "$$tau" "$$reflectance" >> "$$data_file"
+	      fi
+	    done
+	    if [[ -s "$$data_file" ]]; then
+	      sort -g -k1,1 -k2,2 "$$data_file" -o "$$data_file"
+	      geometry_label=Sphère
+	      if [[ "$$geometry" == cube ]]; then geometry_label=Cube; fi
+	      output_file="$$output_dir/reflectance_$${geometry}_N$${photon_count}.png"
+	      gnuplot -e "data_file='$$data_file'; output_file='$$output_file'; geometry='$$geometry_label, N=$$photon_count'" \
+	        gnuplot/directional_reflectance.gp.in
+	      reflectance_images+=("$$output_file")
 	    fi
 	  done
-	  if [[ -s "$$data_file" ]]; then
-	    sort -g -k1,1 -k2,2 "$$data_file" -o "$$data_file"
-	    gnuplot -e "data_file='$$data_file'; output_file='$$output_dir/reflectance_$$geometry.png'; geometry='$$geometry'" \
-	      gnuplot/directional_reflectance.gp.in
-	  fi
 	done
 	outfile="$$output_dir/report_interactif.html"
 	{
 	  printf '%s\n' '<!DOCTYPE html>' '<html lang="fr">' '<head>' '<meta charset="UTF-8">' '<title>Rapport interactif – scatter-cloud-mc</title>' '<link rel="stylesheet" href="$(WEB_ASSET_PREFIX)/report_interactif.css">' '</head>' '<body>' '<h1>Rapport interactif – scatter-cloud-mc</h1>'
 	  printf '%s\n' '<div class="controls"><label>Forme : <select id="geometryFilter"><option value="all">Toutes</option><option value="sphere">Sphère</option><option value="cube">Cube</option></select></label>' '<label>Angle : <select id="angleFilter"><option value="all">Tous</option></select></label>' '<label>Tau : <select id="tauFilter"><option value="all">Tous</option></select></label>' '<label>Photons injectés : <select id="photonFilter"><option value="all">Tous</option></select></label>' '<label class="scale-toggle" for="scaleFilter"><input id="scaleFilter" type="checkbox" role="switch"><span>Échelle logarithmique</span></label>' '<label class="scale-toggle" for="cosAlphaDFilter"><input id="cosAlphaDFilter" type="checkbox" role="switch"><span>Abscisse cos(α_d)</span></label></div>'
-	  if [[ -f "$$output_dir/reflectance_sphere.png" || -f "$$output_dir/reflectance_cube.png" ]]; then
+	  if [[ $${#reflectance_images[@]} -gt 0 ]]; then
 	    printf '%s\n' '<section class="reflectance"><h2>Réflectance directionnelle</h2>' '<p>R<sub>dir</sub> = flux diffus montant / flux incident dans la direction θ<sub>0</sub>.</p>' '<div class="reflectance-grid">'
-	    for geometry in sphere cube; do
-	      png_file="reflectance_$$geometry.png"
-	      if [[ -f "$$output_dir/$$png_file" ]]; then
-	        label=Sphère
-	        if [[ "$$geometry" == cube ]]; then label=Cube; fi
-	        printf '  <figure data-geometry="%s"><figcaption>%s</figcaption><img src="%s" alt="Réflectance directionnelle du balayage %s"></figure>\n' "$$geometry" "$$label" "$$png_file" "$$label"
-	      fi
+	    for reflectance_image in "$${reflectance_images[@]}"; do
+	      png_file=$$(basename "$$reflectance_image")
+	      image_stem=$${png_file%.png}
+	      geometry=$${image_stem#reflectance_}
+	      geometry=$${geometry%%_N*}
+	      photon_count=$${image_stem##*_N}
+	      label=Sphère
+	      if [[ "$$geometry" == cube ]]; then label=Cube; fi
+	      printf '  <figure data-geometry="%s" data-photons="%s"><figcaption>%s, N = %s</figcaption><img src="%s" alt="Réflectance directionnelle %s, N = %s"></figure>\n' "$$geometry" "$$photon_count" "$$label" "$$photon_count" "$$png_file" "$$label" "$$photon_count"
 	    done
 	    printf '%s\n' '</div></section>'
 	  fi
@@ -416,7 +485,9 @@ report: .replot-sweep
 	} > "$$outfile"
 	printf 'Report: %s\n' "$$outfile"
 
-full: build test sweep report
+full: build test
+	$(MAKE) --no-print-directory sweep GEOMETRY="$(GEOMETRY)" OUTPUT_DIR="$(OUTPUT_DIR)" CONFIG_DIR="$(CONFIG_DIR)" N_PHOTONS="$(N_PHOTONS)" ANGLES="$(ANGLES)" TAUS="$(TAUS)" RESUME="$(RESUME)"
+	$(MAKE) --no-print-directory report OUTPUT_DIR="$(OUTPUT_DIR)" CONFIG_DIR="$(CONFIG_DIR)" WEB_ASSET_PREFIX="$(WEB_ASSET_PREFIX)"
 
 # Formatting and quality checks
 format:

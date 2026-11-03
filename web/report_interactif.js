@@ -48,7 +48,8 @@ function applyFilter() {
   }
   for (const figure of document.querySelectorAll('.reflectance figure')) {
     const okGeometry = geometry === 'all' || figure.dataset.geometry === geometry;
-    figure.classList.toggle('hidden', !okGeometry);
+    const okPhotons = photonCount === 'all' || figure.dataset.photons === photonCount;
+    figure.classList.toggle('hidden', !(okGeometry && okPhotons));
   }
 }
 
