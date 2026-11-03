@@ -13,6 +13,17 @@ if [[ ! -f "$EXAMPLE_CONFIG_DIR/config.template.dat" ]]; then
   cp config/config.template.dat "$EXAMPLE_CONFIG_DIR/config.template.dat"
 fi
 
+example_run_dir() {
+  local name=$1
+  if [[ -n "${RUN_DIR:-}" ]]; then
+    printf '%s' "$RUN_DIR"
+  elif [[ -n "${OUTPUT_DIR:-}" ]]; then
+    printf '%s' "$OUTPUT_DIR"
+  else
+    printf '%s/%s-%s-%s' "$EXAMPLE_OUTPUT_ROOT" "$name" "$(date +%Y%m%d-%H%M%S)" "$$"
+  fi
+}
+
 example_report() {
   local output_dir=$1
   local web_asset_prefix=${WEB_ASSET_PREFIX:-$EXAMPLE_WEB_ASSET_PREFIX}

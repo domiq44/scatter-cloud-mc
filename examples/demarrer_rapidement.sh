@@ -6,7 +6,7 @@
 set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/_commun.sh"
 
-quick_output_dir="${QUICK_OUTPUT_DIR:-${OUTPUT_DIR:-$EXAMPLE_OUTPUT_ROOT/demarrage_rapide}}"
+quick_output_dir="${QUICK_OUTPUT_DIR:-$(example_run_dir demarrage_rapide)}"
 make quick \
   GEOMETRY="${GEOMETRY:-sphere}" \
   QUICK_N_PHOTONS="${QUICK_N_PHOTONS:-2000}" \

@@ -6,7 +6,7 @@
 set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/_commun.sh"
 
-output_dir="${OUTPUT_DIR:-$EXAMPLE_OUTPUT_ROOT/tailles_echantillon}"
+output_dir="${RUN_DIR:-${OUTPUT_DIR:-$(example_run_dir tailles_echantillon)}}"
 angles="${ANGLES:-0 60 90}"
 taus="${TAUS:-1}"
 read -r -a photon_counts <<< "${PHOTON_COUNTS:-1000 5000}"

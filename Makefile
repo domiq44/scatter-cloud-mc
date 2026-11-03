@@ -16,6 +16,7 @@ COVERAGE_REPORT_DIR := coverage
 CONFIG_DIR := config
 OUTPUT_DIR := output
 QUICK_OUTPUT_DIR ?= output/quick
+EXAMPLE_OUTPUT_ROOT ?= output/examples
 TEST_DIR := tests
 SUPPORT_DIR := $(TEST_DIR)/support
 FORMAT_SOURCES := $(wildcard src/*.c include/*.h tests/*.c tests/support/*.c tests/support/*.h)
@@ -64,7 +65,7 @@ PLOT_TYPE ?= both
 .PHONY: all help \
 	build test coverage format format-check \
 	run run-one plot run-many \
-	sweep sweep-plan quick report full quality clean clean-output clean-coverage clean-sweep-configs clean-all .replot-sweep
+	sweep sweep-plan quick report full quality clean clean-output clean-coverage clean-sweep-configs clean-examples clean-all .replot-sweep
 
 all: build test
 
@@ -96,6 +97,7 @@ help:
 	  '  make clean-output    Remove output/ and the quick-sweep output' \
 	  '  make clean-coverage  Remove coverage reports' \
 	  '  make clean-sweep-configs  Remove generated sweep configs from config/' \
+	  '  make clean-examples   Remove generated files under output/examples/' \
 	  '  make clean-all       Remove build files, generated configs, outputs and coverage'
 
 # Build and tests
@@ -507,6 +509,19 @@ clean:
 clean-sweep-configs:
 	find "$(CONFIG_DIR)" -maxdepth 1 -type f \
 	  \( -name 'config.angle*_tau*.dat' -o -name 'config.cube_angle*_tau*.dat' \) -delete
+
+clean-examples:
+	output_root="$(EXAMPLE_OUTPUT_ROOT)"
+	case "$$output_root" in
+	  output/examples|output/examples/*) ;;
+	  *) printf 'Refusing to clean outside output/examples/: %s\n' "$$output_root" >&2; exit 2 ;;
+	esac
+	if [[ "$$output_root" == *"/../"* || "$$output_root" == */.. || "$$output_root" == *"/./"* ]]; then
+	  printf 'Refusing unsafe example output path: %s\n' "$$output_root" >&2
+	  exit 2
+	fi
+	rm -rf -- "$$output_root"
+	printf 'Removed example outputs: %s\n' "$$output_root"
 
 clean-output:
 	rm -rf "$(OUTPUT_DIR)" "$(QUICK_OUTPUT_DIR)"

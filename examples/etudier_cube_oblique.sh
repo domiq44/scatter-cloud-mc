@@ -6,7 +6,7 @@
 set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/_commun.sh"
 
-output_dir="${OUTPUT_DIR:-$EXAMPLE_OUTPUT_ROOT/cube_oblique}"
+output_dir="${RUN_DIR:-${OUTPUT_DIR:-$(example_run_dir cube_oblique)}}"
 make sweep CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY=cube N_PHOTONS="${N_PHOTONS:-3000}" \
   ANGLES="${ANGLES:-30 60 80 90}" TAUS="${TAUS:-0.5 2}" OUTPUT_DIR="$output_dir"
 example_report "$output_dir"

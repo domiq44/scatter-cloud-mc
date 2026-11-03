@@ -6,13 +6,13 @@
 set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/_commun.sh"
 
-output_dir="${OUTPUT_DIR:-$EXAMPLE_OUTPUT_ROOT/albedo_phase}"
-config_dir="$EXAMPLE_CONFIG_DIR/albedo_phase"
+output_dir="${RUN_DIR:-${OUTPUT_DIR:-$(example_run_dir albedo_phase)}}"
+config_dir="$output_dir/config"
 source_config="${BASE_CONFIG:-config/config.dat}"
 photon_count="${N_PHOTONS:-2000}"
 read -r -a albedos <<< "${ALBEDOS:-0 0.5 1}"
 read -r -a phase_functions <<< "${PHASE_FUNCTIONS:-double_hg hg}"
-mkdir -p "$config_dir"
+mkdir -p "$config_dir" "$output_dir"
 
 write_variant() {
   local name=$1

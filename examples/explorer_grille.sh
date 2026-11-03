@@ -6,7 +6,7 @@
 set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/_commun.sh"
 
-output_dir="${OUTPUT_DIR:-$EXAMPLE_OUTPUT_ROOT/explorer_grille}"
+output_dir="${RUN_DIR:-${OUTPUT_DIR:-$(example_run_dir explorer_grille)}}"
 geometry="${GEOMETRY:-sphere}"
 photon_count="${N_PHOTONS:-3000}"
 angles="${ANGLES:-0 30 60 90}"

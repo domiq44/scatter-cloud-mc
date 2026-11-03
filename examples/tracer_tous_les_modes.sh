@@ -6,7 +6,7 @@
 set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/_commun.sh"
 
-output_dir="${OUTPUT_DIR:-$EXAMPLE_OUTPUT_ROOT/modes_traces}"
+output_dir="${RUN_DIR:-${OUTPUT_DIR:-$(example_run_dir modes_traces)}}"
 make sweep CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY=sphere N_PHOTONS="${N_PHOTONS:-2000}" \
   ANGLES="${ANGLE:-30}" TAUS="${TAU:-1}" OUTPUT_DIR="$output_dir"
 distribution=$(find "$output_dir" -type f -name '*.distribution.csv' -print -quit)

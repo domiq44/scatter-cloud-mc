@@ -6,9 +6,10 @@
 set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/_commun.sh"
 
-output_dir="${OUTPUT_DIR:-$EXAMPLE_OUTPUT_ROOT/stabilite_graines}"
+output_dir="${RUN_DIR:-${OUTPUT_DIR:-$(example_run_dir stabilite_graines)}}"
 photon_count="${N_PHOTONS:-3000}"
-config_file="$EXAMPLE_CONFIG_DIR/config_stabilite.dat"
+config_file="$output_dir/config_stabilite.dat"
+mkdir -p "$output_dir"
 sed -E "s/^[[:space:]]*n_photons[[:space:]]*=.*/n_photons = $photon_count/" \
 	config/config.dat > "$config_file"
 make run-one CONFIG="$config_file" NAME=representative OUTPUT_DIR="$output_dir"
