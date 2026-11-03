@@ -21,7 +21,17 @@ if (cos_alpha_d) {
 }
 stats data_file using 11 nooutput
 ballistic_fraction = STATS_mean
+stats data_file using 9 nooutput
 set title sprintf('Composante diffuse conditionnelle à la détection (θ₀ = %.0f°, τ = %.2f, faisceau direct = %.1f%%)', theta_zero, tau, 100.0 * ballistic_fraction)
 set grid xtics ytics
 set key top left
-plot data_file using (column(x_column)):($9 > 0 ? $9 : 1/0):($9 > 0 ? ($9 > 2.0*$10 ? $9-$10 : $9) : 1/0):($9 > 0 ? $9+$10 : 1/0) with yerrorbars pt 0 lw 1 lc rgb '#777777' title 'Erreur-type (1σ)', data_file using (column(x_column)):($9 > 0 ? $9 : 1/0) with steps lw 2 lc rgb '#245b9e' title 'Après au moins une diffusion'
+if (STATS_max > 0) {
+	plot data_file using (column(x_column)):($9 > 0 ? $9 : 1/0):($9 > 0 ? ($9 > 2.0*$10 ? $9-$10 : $9) : 1/0):($9 > 0 ? $9+$10 : 1/0) with yerrorbars pt 0 lw 1 lc rgb '#777777' title 'Erreur-type (1σ)', data_file using (column(x_column)):($9 > 0 ? $9 : 1/0) with steps lw 2 lc rgb '#245b9e' title 'Après au moins une diffusion'
+} else {
+	unset logscale y
+	set yrange [0:1]
+	set ylabel 'Aucune contribution diffuse détectée'
+	set label 1 'Aucun photon diffusé détecté' at graph 0.5,0.5 center
+	plot 0 with lines lw 2 lc rgb '#d1495b' notitle
+	unset label 1
+}

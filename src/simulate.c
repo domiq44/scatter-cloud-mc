@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-static int build_output_filename(const Config *config, const char *output_dir, char *filename,
-                                 size_t filename_size) {
+static int build_output_filename(const Config *config, int seed, const char *output_dir,
+                                 char *filename, size_t filename_size) {
     if (!config || !output_dir || !filename || filename_size == 0)
         return 0;
 
@@ -20,14 +20,16 @@ static int build_output_filename(const Config *config, const char *output_dir, c
     if (config->phase_function == PHASE_FUNCTION_DOUBLE_HG) {
         length =
             snprintf(filename, filename_size,
-                     "%s/%s_theta%.0f_radius%.8g_albedo%.2f_doubleHG_g1%.6g_g2%.6g_p%.6g_N%d.csv",
-                     output_dir, geometry, config->theta_zero, config->radius, config->albedo,
-                     config->g, config->g2, config->hg_fraction, config->n_photons);
+                     "%s/%s_theta%.17g_sigma%.17g_radius%.17g_albedo%.17g_doubleHG_g1%.17g_g2%.17g_p%.17g_N%d_bins%d_seed%d.csv",
+                     output_dir, geometry, config->theta_zero, config->sigma_e, config->radius,
+                     config->albedo, config->g, config->g2, config->hg_fraction, config->n_photons,
+                     config->n_mu_bins, seed);
     } else {
-        length =
-            snprintf(filename, filename_size, "%s/%s_theta%.0f_radius%.8g_albedo%.2f_g%.2f_N%d.csv",
-                     output_dir, geometry, config->theta_zero, config->radius, config->albedo,
-                     config->g, config->n_photons);
+        length = snprintf(filename, filename_size,
+                          "%s/%s_theta%.17g_sigma%.17g_radius%.17g_albedo%.17g_hg_g%.17g_N%d_bins%d_seed%d.csv",
+                          output_dir, geometry, config->theta_zero, config->sigma_e,
+                          config->radius, config->albedo, config->g, config->n_photons,
+                          config->n_mu_bins, seed);
     }
     return length >= 0 && (size_t)length < filename_size;
 }
@@ -61,16 +63,16 @@ int main(int argc, char **argv) {
     }
 
     mkdir(output_dir, 0755);
-    char filename[256];
-    if (!build_output_filename(&config, output_dir, filename, sizeof(filename))) {
+    char filename[512];
+    if (!build_output_filename(&config, seed, output_dir, filename, sizeof(filename))) {
         fprintf(stderr, "Erreur : chemin de sortie trop long\n");
         simulation_result_free(&result);
         return 1;
     }
-    char distribution_filename[512] = {0};
+    char distribution_filename[640] = {0};
     replace_extension(filename, ".csv", ".distribution.csv", distribution_filename,
                       sizeof(distribution_filename));
-    char flux_filename[512] = {0};
+    char flux_filename[640] = {0};
     replace_extension(filename, ".csv", ".flux.csv", flux_filename, sizeof(flux_filename));
 
     if (!distribution_filename[0] || !flux_filename[0] ||

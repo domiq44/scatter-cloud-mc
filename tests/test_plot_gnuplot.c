@@ -40,6 +40,8 @@ static TestResult test_distribution_script_uses_alpha_d_and_log_scale(void) {
             strstr(script, "tau = 8.00\n") != NULL && strstr(script, "cos_alpha_d = 0") != NULL &&
             strstr(script, "set xlabel 'Angle de diffusion α_d (degrés)'") != NULL &&
             strstr(script, "stats data_file using 11 nooutput") != NULL &&
+            strstr(script, "stats data_file using 9 nooutput") != NULL &&
+            strstr(script, "Aucun photon diffusé détecté") != NULL &&
             strstr(script, "using (column(x_column)):($9 > 0 ? $9 : 1/0)") != NULL &&
             strstr(script, "($9 > 2.0*$10 ? $9-$10 : $9)") != NULL &&
             strstr(script, "Henyey-Greenstein") == NULL && strstr(script, "using 1:4") == NULL,

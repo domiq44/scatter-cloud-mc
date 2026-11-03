@@ -66,8 +66,33 @@ static TestResult test_report_contains_energy_summary(void) {
                             "le rapport qualifie le résidu et conserve son marqueur machine");
 }
 
+/* Vérifie que le diagnostic d'opacité utilise la forme et son tau moyen. */
+static TestResult test_report_opacity_warning_uses_cube_geometry(void) {
+    /* Given */
+    const Config config = {
+        .n_photons = 2,
+        .sigma_e = 1.0,
+        .radius = 1.0,
+        .theta_zero = 60.0,
+        .geometry = GEOMETRY_CUBE,
+    };
+    const SimulationResult result = {0};
+    char output[2048];
+
+    /* When */
+    int captured = capture_simulation_report(&result, &config, output, sizeof(output));
+
+    /* Then */
+    return assert_condition(captured && strstr(output, "forme (cube)") != NULL &&
+                                strstr(output, "tau = 1.46") != NULL &&
+                                strstr(output, "La sphère est probablement") == NULL,
+                            "le diagnostic cube affiche son épaisseur optique moyenne");
+}
+
 static const TestCase test_cases[] = {
     {"test_report_contains_energy_summary", test_report_contains_energy_summary},
+    {"test_report_opacity_warning_uses_cube_geometry",
+     test_report_opacity_warning_uses_cube_geometry},
 };
 
 int main(void) {

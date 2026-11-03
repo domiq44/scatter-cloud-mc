@@ -204,8 +204,9 @@ $\bar\tau = \sigma_e\bar\ell$. Pour le cube, le balayage calcule
 `radius = τ (|sin θ₀| + |cos θ₀|) / (2 σₑ)` pour chaque angle; pour la sphère,
 il utilise `radius = 3 τ / (4 σₑ)`.
 Les fichiers de sortie identifient aussi leur géométrie (`sphere_` ou `cube_`)
-et conservent la précision utile de `radius`, y compris pour les valeurs
-inférieures à 0,1.
+et enregistrent les paramètres physiques, le nombre de bins et la graine
+effectivement utilisée. Les paramètres flottants sont sérialisés avec une
+précision aller-retour afin d'éviter les collisions dues aux arrondis.
 
 `report` régénère les graphiques et crée une galerie HTML dans
 `output/report_interactif.html`. La galerie présente les distributions
@@ -250,7 +251,8 @@ de $\alpha_d$ ou de $\mu = \cos(\alpha_d)$, avec une ordonnée linéaire ou loga
 photons ayant subi au moins une diffusion; son intégrale donne leur fraction de
 l’énergie détectée. `ballistic_energy_fraction_of_detected` donne la fraction
 complémentaire des photons sortis sans diffusion. Les bins diffusifs nuls sont
-omis du graphique logarithmique.
+omis du graphique logarithmique. Si aucun bin diffusif n'est positif, le
+graphique affiche un message explicite plutôt que d'échouer.
 
 La somme de `detected_energy_fraction_of_injected` vaut
 `E_detected / n_photons`.

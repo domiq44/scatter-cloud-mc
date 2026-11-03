@@ -160,7 +160,7 @@ run-one: $(APP_BINS)
 	test -n "$$csv_file"
 	distribution_file="$${csv_file%.csv}.distribution.csv"
 	test -f "$$distribution_file"
-	awk -F, 'NR>1 && $$3 > 0 {count++} END {print count+0}' "$$csv_file" > "$$out_dir/stats.txt"
+	awk -F, 'NR>1 {count++} END {print count+0}' "$$csv_file" > "$$out_dir/stats.txt"
 	sorted_csv="$${csv_file}.sorted"
 	{ head -n 1 "$$csv_file"; tail -n +2 "$$csv_file" | sort -t, -k1,1nr; } > "$$sorted_csv"
 	mv "$$sorted_csv" "$$csv_file"
