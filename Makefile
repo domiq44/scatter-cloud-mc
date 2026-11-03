@@ -15,6 +15,7 @@ COVERAGE_BUILD_DIR := $(BUILD_DIR)/coverage
 COVERAGE_REPORT_DIR := coverage
 CONFIG_DIR := config
 OUTPUT_DIR := output
+QUICK_OUTPUT_DIR ?= output/quick
 TEST_DIR := tests
 SUPPORT_DIR := $(TEST_DIR)/support
 FORMAT_SOURCES := $(wildcard src/*.c include/*.h tests/*.c tests/support/*.c tests/support/*.h)
@@ -46,6 +47,15 @@ CONFIG ?= $(CONFIG_DIR)/config.dat
 NAME ?= default
 N_RUNS ?= 20
 GEOMETRY ?= sphere
+ANGLES ?= 0 30 60 70 80 85 90
+TAUS ?= 0.01 0.02 0.05 0.1 0.2 0.5 1 2 5 10 20 50 100
+N_PHOTONS ?= $(shell awk -F= '/^[[:space:]]*n_photons[[:space:]]*=/{gsub(/[ \t]/, "", $$2); print $$2; exit}' "$(CONFIG_DIR)/config.template.dat")
+RESUME ?= 0
+QUICK_N_PHOTONS ?= 2000
+QUICK_ANGLES ?= 0 60 90
+QUICK_TAUS ?= 0.1 1 10
+QUICK_WEB_ASSET_PREFIX ?= ../../web
+WEB_ASSET_PREFIX ?= ../web
 DISTRIBUTION ?=
 PNG ?=
 PLOT_TYPE ?= both
@@ -53,7 +63,7 @@ PLOT_TYPE ?= both
 .PHONY: all help \
 	build test coverage format format-check \
 	run run-one plot run-many \
-	sweep report full quality clean .replot-sweep
+	sweep sweep-plan quick report full quality clean clean-output clean-coverage clean-sweep-configs clean-all .replot-sweep
 
 all: build test
 
@@ -72,12 +82,19 @@ help:
 	  '    PLOT_TYPE=distribution|distribution-linear|distribution-mu|distribution-mu-linear|phase|both (default both)' \
 	  '  make run-many N_RUNS=20 Check seed stability' \
 	  'Sweeps and reports:' \
-	  '  make sweep [GEOMETRY=sphere|cube|both] Run the parameter grid (default: sphere)' \
+	  '  make sweep-plan         Preview sweep size without running simulations' \
+	  '  make sweep [GEOMETRY=sphere|cube|both] [N_PHOTONS=...] [ANGLES="..."] [TAUS="..."]' \
+	  '  make quick              Run a small sweep in output/quick/ and generate its report' \
+	  '    RESUME=1 skips cases with matching saved configurations' \
 	  '  make report          Regenerate sweep plots and the HTML report' \
 	  '  make full            Build, test, sweep, and report' \
 	  'Quality and cleanup:' \
 	  '  make quality         Check formatting and run static analysis' \
-	  '  make clean           Remove build/output and generated configs'
+	  '  make clean           Remove build files only' \
+	  '  make clean-output    Remove output/ and the quick-sweep output' \
+	  '  make clean-coverage  Remove coverage reports' \
+	  '  make clean-sweep-configs  Remove generated sweep configs from config/' \
+	  '  make clean-all       Remove build files, generated configs, outputs and coverage'
 
 # Build and tests
 build: $(APP_BINS) $(TEST_BINS)
@@ -181,28 +198,92 @@ run-many: $(APP_BINS)
 	rm -rf "$(OUTPUT_DIR)/.run-many"
 
 # Parameter sweeps and reports
+sweep-plan:
+	set -e
+	case "$(GEOMETRY)" in
+	  sphere) geometries=(sphere) ;;
+	  cube) geometries=(cube) ;;
+	  both) geometries=(sphere cube) ;;
+	  *) printf 'Unsupported GEOMETRY: %s (expected sphere, cube, or both)\n' "$(GEOMETRY)" >&2; exit 2 ;;
+	esac
+	read -r -a angles <<< "$(ANGLES)"
+	read -r -a taus <<< "$(TAUS)"
+	photon_count="$(N_PHOTONS)"
+	if ! [[ "$$photon_count" =~ ^[1-9][0-9]*$$ ]]; then
+	  printf 'N_PHOTONS must be a positive integer: %s\n' "$$photon_count" >&2
+	  exit 2
+	fi
+	if [[ "$(RESUME)" != 0 && "$(RESUME)" != 1 ]]; then
+	  printf 'RESUME must be 0 or 1: %s\n' "$(RESUME)" >&2
+	  exit 2
+	fi
+	if [[ $${#angles[@]} -eq 0 || $${#taus[@]} -eq 0 ]]; then
+	  printf 'ANGLES and TAUS must each contain at least one value\n' >&2
+	  exit 2
+	fi
+	for angle in "$${angles[@]}"; do
+	  if ! [[ "$$angle" =~ ^[0-9]+([.][0-9]+)?$$ ]] || ! awk -v value="$$angle" 'BEGIN {exit !(value <= 90)}'; then
+	    printf 'Invalid angle (expected a number from 0 to 90): %s\n' "$$angle" >&2
+	    exit 2
+	  fi
+	done
+	for tau in "$${taus[@]}"; do
+	  if ! [[ "$$tau" =~ ^[0-9]+([.][0-9]+)?$$ ]] || ! awk -v value="$$tau" 'BEGIN {exit !(value > 0)}'; then
+	    printf 'Invalid optical thickness (expected a positive number): %s\n' "$$tau" >&2
+	    exit 2
+	  fi
+	done
+	case_count=$$(($${#geometries[@]} * $${#angles[@]} * $${#taus[@]}))
+	printf 'Géométries : %s\n' "$(GEOMETRY)"
+	printf 'Photons par cas : %s\n' "$$photon_count"
+	printf 'Angles : %s\n' "$(ANGLES)"
+	printf 'Tau : %s\n' "$(TAUS)"
+	printf 'Nombre de simulations : %d\n' "$$case_count"
+
 sweep: $(APP_BINS)
+	$(MAKE) --no-print-directory sweep-plan GEOMETRY="$(GEOMETRY)" N_PHOTONS="$(N_PHOTONS)" ANGLES="$(ANGLES)" TAUS="$(TAUS)" RESUME="$(RESUME)" >/dev/null
 	set -e
 	case "$(GEOMETRY)" in
 	  sphere|cube) geometries=("$(GEOMETRY)") ;;
 	  both) geometries=(sphere cube) ;;
 	  *) printf 'Unsupported GEOMETRY: %s (expected sphere, cube, or both)\n' "$(GEOMETRY)" >&2; exit 2 ;;
 	esac
+	read -r -a angles <<< "$(ANGLES)"
+	read -r -a taus <<< "$(TAUS)"
+	photon_count="$(N_PHOTONS)"
 	template="$(CONFIG_DIR)/config.template.dat"
 	sigma_e=$$(awk -F= '/^[[:space:]]*sigma_e[[:space:]]*=/{gsub(/[ \t]/, "", $$2); print $$2; exit}' "$$template")
 	test -n "$$sigma_e"
 	for geometry in "$${geometries[@]}"; do
-	  for angle in 0 30 60 70 80 85 90; do
-	    for tau in 0.01 0.02 0.05 0.1 0.2 0.5 1 2 5 10 20 50 100; do
-	      name="angle$${angle}_tau$${tau}"
-	      if [[ "$$geometry" == cube ]]; then name="cube_$${name}"; fi
-	      config_file="$(CONFIG_DIR)/config.$${name}.dat"
+	  for angle in "$${angles[@]}"; do
+	    for tau in "$${taus[@]}"; do
+	      base_name="angle$${angle}_tau$${tau}"
+	      if [[ "$$geometry" == cube ]]; then base_name="cube_$${base_name}"; fi
+	      temp_config=$$(mktemp "$(BUILD_DIR)/sweep-config.XXXXXX")
 	      radius=$$(awk -v geometry="$$geometry" -v angle="$$angle" -v tau="$$tau" -v sigma="$$sigma_e" 'BEGIN {if (geometry == "sphere") radius = tau * 3 / (4 * sigma); else {radians = angle * atan2(0, -1) / 180; sine = sin(radians); cosine = cos(radians); if (sine < 0) sine = -sine; if (cosine < 0) cosine = -cosine; radius = tau * (sine + cosine) / (2 * sigma)}; printf "%.8f", radius}')
-	      sed -e "s/{{ANGLE}}/$$angle/g" -e "s/{{TAU}}/$$tau/g" -e "s/{{RADIUS}}/$$radius/g" -e "s/{{GEOMETRY}}/$$geometry/g" "$$template" > "$$config_file"
-	      $(MAKE) --no-print-directory run-one CONFIG="$$config_file" NAME="$$name" GEOMETRY="$$geometry"
+	      sed -e "s/^[[:space:]]*n_photons[[:space:]]*=.*/n_photons = $$photon_count/" \
+	        -e "s/{{ANGLE}}/$$angle/g" -e "s/{{TAU}}/$$tau/g" -e "s/{{RADIUS}}/$$radius/g" \
+	        -e "s/{{GEOMETRY}}/$$geometry/g" "$$template" > "$$temp_config"
+	      config_signature=$$(cksum "$$temp_config" | awk '{printf "%s_%s", $$1, $$2}')
+	      name="$${base_name}_cfg$${config_signature}"
+	      config_file="$(CONFIG_DIR)/config.$${name}.dat"
+	      mv "$$temp_config" "$$config_file"
+	      experiment_dir="$(OUTPUT_DIR)/$$name"
+	      snapshot="$$experiment_dir/sweep-config.dat"
+	      distribution_file=$$(find "$$experiment_dir" -maxdepth 1 -type f -name '*.distribution.csv' -print -quit 2>/dev/null || true)
+	      if [[ "$(RESUME)" == 1 && -n "$$distribution_file" && -f "$$snapshot" ]] && cmp -s "$$config_file" "$$snapshot"; then
+	        printf 'Skip %s (configuration déjà calculée)\n' "$$name"
+	      else
+	        $(MAKE) --no-print-directory run-one CONFIG="$$config_file" NAME="$$name" OUTPUT_DIR="$(OUTPUT_DIR)" GEOMETRY="$$geometry"
+	        cp "$$config_file" "$$snapshot"
+	      fi
 	    done
 	  done
 	done
+
+quick:
+	$(MAKE) --no-print-directory sweep GEOMETRY="$(GEOMETRY)" OUTPUT_DIR="$(QUICK_OUTPUT_DIR)" N_PHOTONS="$(QUICK_N_PHOTONS)" ANGLES="$(QUICK_ANGLES)" TAUS="$(QUICK_TAUS)" RESUME="$(RESUME)"
+	$(MAKE) --no-print-directory report OUTPUT_DIR="$(QUICK_OUTPUT_DIR)" WEB_ASSET_PREFIX="$(QUICK_WEB_ASSET_PREFIX)"
 
 .replot-sweep: $(APP_BINS)
 	set -e
@@ -210,8 +291,12 @@ sweep: $(APP_BINS)
 	distribution_files=("$(OUTPUT_DIR)"/angle*_tau*/*.distribution.csv "$(OUTPUT_DIR)"/cube_angle*_tau*/*.distribution.csv)
 	for distribution_file in "$${distribution_files[@]}"; do
 	  experiment_name=$$(basename "$$(dirname "$$distribution_file")")
-	  config_file="$(CONFIG_DIR)/config.$${experiment_name}.dat"
-	  test -f "$$config_file"
+	  config_file="$(OUTPUT_DIR)/$$experiment_name/sweep-config.dat"
+	  if [[ ! -f "$$config_file" ]]; then config_file="$(CONFIG_DIR)/config.$${experiment_name}.dat"; fi
+	  if [[ ! -f "$$config_file" ]]; then
+	    printf 'Skipping %s: saved sweep configuration not found\n' "$$experiment_name" >&2
+	    continue
+	  fi
 	  png_file="$${distribution_file%.distribution.csv}.png"
 	  $(MAKE) --no-print-directory plot DISTRIBUTION="$$distribution_file" CONFIG="$$config_file" PNG="$$png_file" PLOT_TYPE=distribution
 	  linear_png_file="$${distribution_file%.distribution.csv}_linear.png"
@@ -251,6 +336,7 @@ report: .replot-sweep
 	    angle=$${experiment_dir#angle}
 	    angle=$${angle%%_tau*}
 	    tau=$${experiment_dir#*_tau}
+	    tau=$${tau%%_*}
 	    reflectance=$$(awk -F, '$$1 == "diffuse_upward" {print $$3; exit}' "$$flux_file")
 	    if [[ -n "$$reflectance" ]]; then
 	      printf '%s %s %s\n' "$$angle" "$$tau" "$$reflectance" >> "$$data_file"
@@ -264,8 +350,8 @@ report: .replot-sweep
 	done
 	outfile="$$output_dir/report_interactif.html"
 	{
-	  printf '%s\n' '<!DOCTYPE html>' '<html lang="fr">' '<head>' '<meta charset="UTF-8">' '<title>Rapport interactif – scatter-cloud-mc</title>' '<link rel="stylesheet" href="../web/report_interactif.css">' '</head>' '<body>' '<h1>Rapport interactif – scatter-cloud-mc</h1>'
-	  printf '%s\n' '<div class="controls"><label>Forme : <select id="geometryFilter"><option value="all">Toutes</option><option value="sphere">Sphère</option><option value="cube">Cube</option></select></label>' '<label>Angle : <select id="angleFilter"><option value="all">Tous</option></select></label>' '<label>Tau : <select id="tauFilter"><option value="all">Tous</option></select></label>' '<label class="scale-toggle" for="scaleFilter"><input id="scaleFilter" type="checkbox" role="switch"><span>Échelle logarithmique</span></label>' '<label class="scale-toggle" for="cosAlphaDFilter"><input id="cosAlphaDFilter" type="checkbox" role="switch"><span>Abscisse cos(α_d)</span></label></div>'
+	  printf '%s\n' '<!DOCTYPE html>' '<html lang="fr">' '<head>' '<meta charset="UTF-8">' '<title>Rapport interactif – scatter-cloud-mc</title>' '<link rel="stylesheet" href="$(WEB_ASSET_PREFIX)/report_interactif.css">' '</head>' '<body>' '<h1>Rapport interactif – scatter-cloud-mc</h1>'
+	  printf '%s\n' '<div class="controls"><label>Forme : <select id="geometryFilter"><option value="all">Toutes</option><option value="sphere">Sphère</option><option value="cube">Cube</option></select></label>' '<label>Angle : <select id="angleFilter"><option value="all">Tous</option></select></label>' '<label>Tau : <select id="tauFilter"><option value="all">Tous</option></select></label>' '<label>Photons injectés : <select id="photonFilter"><option value="all">Tous</option></select></label>' '<label class="scale-toggle" for="scaleFilter"><input id="scaleFilter" type="checkbox" role="switch"><span>Échelle logarithmique</span></label>' '<label class="scale-toggle" for="cosAlphaDFilter"><input id="cosAlphaDFilter" type="checkbox" role="switch"><span>Abscisse cos(α_d)</span></label></div>'
 	  if [[ -f "$$output_dir/reflectance_sphere.png" || -f "$$output_dir/reflectance_cube.png" ]]; then
 	    printf '%s\n' '<section class="reflectance"><h2>Réflectance directionnelle</h2>' '<p>R<sub>dir</sub> = flux diffus montant / flux incident dans la direction θ<sub>0</sub>.</p>' '<div class="reflectance-grid">'
 	    for geometry in sphere cube; do
@@ -290,8 +376,16 @@ report: .replot-sweep
 	    angle=$${directory_name#angle}
 	    angle=$${angle%%_tau*}
 	    tau=$${directory_name#*_tau}
+	    tau=$${tau%%_*}
 	    stats_file="$$directory/stats.txt"
 	    photons_detected=$$(cat "$$stats_file" 2>/dev/null || printf '?')
+	    config_file="$$directory/sweep-config.dat"
+	    if [[ ! -f "$$config_file" ]]; then config_file="$(CONFIG_DIR)/config.$${directory_name}.dat"; fi
+	    photons_injected=$$(awk -F= '/^[[:space:]]*n_photons[[:space:]]*=/{gsub(/[ \t]/, "", $$2); print $$2; exit}' "$$config_file" 2>/dev/null || true)
+	    if [[ -z "$$photons_injected" ]]; then
+	      photons_injected=$$(basename "$$image" | sed -n 's/.*_N\([0-9][0-9]*\)_bins.*/\1/p')
+	    fi
+	    if [[ -z "$$photons_injected" ]]; then photons_injected=?; fi
 	    image_relative=$${image#"$$output_dir"/}
 	    linear_image="$${image%.png}_linear.png"
 	    if [[ ! -f "$$linear_image" ]]; then linear_image="$$image"; fi
@@ -304,7 +398,7 @@ report: .replot-sweep
 	    mu_linear_image_relative=$${mu_linear_image#"$$output_dir"/}
 	    graph_type="Distribution"
 	    if [[ "$$image" == *_phase.png ]]; then graph_type="Fonction de phase"; fi
-	    caption="$${graph_type}, géométrie = $${geometry}, angle = $${angle}°, tau = $${tau}, N détectés = $${photons_detected}"
+	    caption="$${graph_type}, géométrie = $${geometry}, angle = $${angle}°, tau = $${tau}, détectés = $${photons_detected} / injectés = $${photons_injected}"
 	    escaped_angle=$$(html_escape "$$angle")
 	    escaped_tau=$$(html_escape "$$tau")
 	    escaped_image=$$(html_escape "$$image_relative")
@@ -312,12 +406,13 @@ report: .replot-sweep
 	    escaped_mu_image=$$(html_escape "$$mu_image_relative")
 	    escaped_mu_linear_image=$$(html_escape "$$mu_linear_image_relative")
 	    escaped_caption=$$(html_escape "$$caption")
-	    printf '  <div class="card" data-geometry="%s" data-angle="%s" data-tau="%s" data-alpha-d-log-src="%s" data-alpha-d-linear-src="%s" data-mu-log-src="%s" data-mu-linear-src="%s"><img src="%s" alt="%s"><div class="caption">%s</div></div>\n' "$$geometry" "$$escaped_angle" "$$escaped_tau" "$$escaped_image" "$$escaped_linear_image" "$$escaped_mu_image" "$$escaped_mu_linear_image" "$$escaped_linear_image" "$$escaped_caption" "$$escaped_caption"
+	    escaped_photons=$$(html_escape "$$photons_injected")
+	    printf '  <div class="card" data-geometry="%s" data-angle="%s" data-tau="%s" data-photons="%s" data-alpha-d-log-src="%s" data-alpha-d-linear-src="%s" data-mu-log-src="%s" data-mu-linear-src="%s"><img src="%s" alt="%s"><div class="caption">%s</div></div>\n' "$$geometry" "$$escaped_angle" "$$escaped_tau" "$$escaped_photons" "$$escaped_image" "$$escaped_linear_image" "$$escaped_mu_image" "$$escaped_mu_linear_image" "$$escaped_linear_image" "$$escaped_caption" "$$escaped_caption"
 	  done < <(find "$$output_dir" -maxdepth 2 -type f -name '*.png' \
 	    \( -path "$$output_dir/angle*_tau*/*" -o -path "$$output_dir/cube_angle*_tau*/*" \) \
 	    ! -name '*_phase.png' ! -name '*_linear.png' ! -name '*_mu.png' \
 	    ! -name 'reflectance_*.png' | sort)
-	  printf '%s\n' '</div>' '<div id="lightbox"><img id="lightbox-img" src=""></div>' '<script src="../web/report_interactif.js"></script>' '</body>' '</html>'
+	  printf '%s\n' '</div>' '<div id="lightbox"><img id="lightbox-img" src=""></div>' '<script src="$(WEB_ASSET_PREFIX)/report_interactif.js"></script>' '</body>' '</html>'
 	} > "$$outfile"
 	printf 'Report: %s\n' "$$outfile"
 
@@ -336,6 +431,17 @@ quality: format-check
 
 # Cleanup
 clean:
-	rm -rf "$(BUILD_DIR)" "$(OUTPUT_DIR)" "$(COVERAGE_REPORT_DIR)"
+	rm -rf "$(BUILD_DIR)"
+
+clean-sweep-configs:
 	find "$(CONFIG_DIR)" -maxdepth 1 -type f \
 	  \( -name 'config.angle*_tau*.dat' -o -name 'config.cube_angle*_tau*.dat' \) -delete
+
+clean-output:
+	rm -rf "$(OUTPUT_DIR)" "$(QUICK_OUTPUT_DIR)"
+
+clean-coverage:
+	rm -rf "$(COVERAGE_REPORT_DIR)" "$(COVERAGE_BUILD_DIR)"
+
+clean-all: clean clean-sweep-configs clean-coverage clean-output
+	rm -rf "$(OUTPUT_DIR)" "$(QUICK_OUTPUT_DIR)" "$(COVERAGE_REPORT_DIR)"

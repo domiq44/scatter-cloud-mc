@@ -183,8 +183,14 @@ Pour comparer plusieurs graines ou balayer les paramètres :
 ```bash
 make run-many N_RUNS=20
 python3 analyse_diff.py
-make sweep
+make sweep-plan N_PHOTONS=5000 ANGLES="0 30 60" TAUS="0.1 1 10"
+make sweep N_PHOTONS=5000 ANGLES="0 30 60" TAUS="0.1 1 10"
+make sweep RESUME=1 N_PHOTONS=5000 ANGLES="0 30 60" TAUS="0.1 1 10"
 make report
+
+# Profil rapide, isolé du répertoire output/ principal
+make quick
+make quick GEOMETRY=both QUICK_N_PHOTONS=3000
 ```
 
 `run-many` utilise `config/config.dat` et écrit les résidus dans
@@ -197,7 +203,23 @@ utilise la sphère; `make sweep GEOMETRY=cube` lance les mêmes combinaisons pou
 le cube, tandis que `make sweep GEOMETRY=both` lance les deux géométries à la
 suite. Les répertoires cube sont préfixés par `cube_`, ce qui permet de
 conserver les résultats des deux géométries et de les afficher ensemble avec
-`make report`.
+`make report`. Chaque répertoire de cas porte aussi une signature de sa
+configuration afin de séparer les sweeps qui utilisent des paramètres différents.
+
+`N_PHOTONS` reprend la valeur du template s'il n'est pas fourni; `ANGLES` et
+`TAUS` acceptent des listes séparées par des espaces. `make sweep-plan` valide
+ces valeurs et affiche le nombre de cas sans lancer de simulation. `RESUME=1`
+saute les cas déjà terminés seulement quand leur snapshot correspond exactement
+à la configuration demandée. `make quick`
+exécute un profil de 9 cas (angles 0°, 60°, 90°; tau 0,1, 1, 10; 2 000
+photons) dans `output/quick/`, puis crée son rapport. Les paramètres
+`QUICK_ANGLES`, `QUICK_TAUS` et `QUICK_N_PHOTONS` permettent de l'ajuster.
+
+Chaque cas de sweep conserve sa configuration exacte dans
+`output/<cas>/sweep-config.dat`. `RESUME=1` ignore uniquement les cas dont la
+configuration correspond à ce snapshot et dont la distribution existe déjà.
+Le rapport utilise ces snapshots, ce qui permet de le régénérer même après
+`make clean`.
 
 Dans les deux cas, $\tau$ désigne l'épaisseur optique moyenne
 $\bar\tau = \sigma_e\bar\ell$. Pour le cube, le balayage calcule
@@ -290,5 +312,8 @@ Pour sélectionner explicitement un autre exécutable, utilisez
 `make quality` vérifie le formatage sans modifier les fichiers, puis exécute
 cppcheck et clang-tidy.
 
-`make clean` supprime `build/`, `output/` et les configurations générées par le
-sweep, mais conserve les configurations de référence.
+`make clean` supprime uniquement `build/`. `make clean-sweep-configs` supprime
+les fichiers de configuration générés par le sweep, sans toucher aux snapshots
+stockés avec les résultats. `make clean-output` supprime les sorties de
+`output/` et du profil rapide; `make clean-coverage` supprime les données de
+couverture. `make clean-all` supprime tous ces artefacts.

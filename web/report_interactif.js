@@ -2,6 +2,7 @@ const cards = Array.from(document.querySelectorAll('.card'));
 const geometrySelect = document.getElementById('geometryFilter');
 const angleSelect = document.getElementById('angleFilter');
 const tauSelect = document.getElementById('tauFilter');
+const photonSelect = document.getElementById('photonFilter');
 const scaleToggle = document.getElementById('scaleFilter');
 const cosAlphaDToggle = document.getElementById('cosAlphaDFilter');
 
@@ -11,6 +12,7 @@ cards.forEach(card => grid.appendChild(card));
 
 const angles = [...new Set(cards.map(c => c.dataset.angle))].sort((a,b)=>a-b);
 const taus   = [...new Set(cards.map(c => c.dataset.tau))].sort((a,b)=>a-b);
+const photonCounts = [...new Set(cards.map(c => c.dataset.photons).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
 
 for (const a of angles) {
   const option = document.createElement('option');
@@ -24,17 +26,25 @@ for (const t of taus) {
   option.textContent = t;
   tauSelect.append(option);
 }
+for (const count of photonCounts) {
+  const option = document.createElement('option');
+  option.value = count;
+  option.textContent = Number(count).toLocaleString('fr-FR');
+  photonSelect.append(option);
+}
 
 function applyFilter() {
   const geometry = geometrySelect ? geometrySelect.value : 'all';
   const a = angleSelect.value;
   const t = tauSelect.value;
+  const photonCount = photonSelect ? photonSelect.value : 'all';
   for (const c of cards) {
     const cardGeometry = c.dataset.geometry || 'sphere';
     const okGeometry = (geometry === 'all' || cardGeometry === geometry);
     const okA = (a === 'all' || c.dataset.angle === a);
     const okT = (t === 'all' || c.dataset.tau === t);
-    c.classList.toggle('hidden', !(okGeometry && okA && okT));
+    const okPhotons = photonCount === 'all' || c.dataset.photons === photonCount;
+    c.classList.toggle('hidden', !(okGeometry && okA && okT && okPhotons));
   }
   for (const figure of document.querySelectorAll('.reflectance figure')) {
     const okGeometry = geometry === 'all' || figure.dataset.geometry === geometry;
@@ -45,6 +55,7 @@ function applyFilter() {
 if (geometrySelect) geometrySelect.addEventListener('change', applyFilter);
 angleSelect.addEventListener('change', applyFilter);
 tauSelect.addEventListener('change', applyFilter);
+if (photonSelect) photonSelect.addEventListener('change', applyFilter);
 applyFilter();
 
 function applyScale() {
