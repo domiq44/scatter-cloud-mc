@@ -11,7 +11,8 @@ angles="${ANGLES:-0 60 90}"
 taus="${TAUS:-1}"
 read -r -a photon_counts <<< "${PHOTON_COUNTS:-1000 5000}"
 for photon_count in "${photon_counts[@]}"; do
-  make sweep CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="${GEOMETRY:-sphere}" N_PHOTONS="$photon_count" \
+  example_run "$output_dir" "Sweep avec N=$photon_count" make sweep \
+    CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="${GEOMETRY:-sphere}" N_PHOTONS="$photon_count" \
     ANGLES="$angles" TAUS="$taus" OUTPUT_DIR="$output_dir"
 done
 example_report "$output_dir"

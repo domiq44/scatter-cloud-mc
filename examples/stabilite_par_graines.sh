@@ -12,7 +12,10 @@ config_file="$output_dir/config_stabilite.dat"
 mkdir -p "$output_dir"
 sed -E "s/^[[:space:]]*n_photons[[:space:]]*=.*/n_photons = $photon_count/" \
 	config/config.dat > "$config_file"
-make run-one CONFIG="$config_file" NAME=representative OUTPUT_DIR="$output_dir"
-make run-many CONFIG="$config_file" N_RUNS="${N_RUNS:-3}" OUTPUT_DIR="$output_dir"
-python3 analyse_diff.py --input "$output_dir/diffs.txt" --config "$config_file"
+example_run "$output_dir" "Simulation representative" make run-one \
+	CONFIG="$config_file" NAME=representative OUTPUT_DIR="$output_dir"
+example_run "$output_dir" "Résidus sur ${N_RUNS:-3} graines" make run-many \
+	CONFIG="$config_file" N_RUNS="${N_RUNS:-3}" OUTPUT_DIR="$output_dir"
+example_run "$output_dir" "Analyse des résidus" python3 analyse_diff.py \
+	--input "$output_dir/diffs.txt" --config "$config_file"
 example_summary "Stabilité par graines" "$output_dir"

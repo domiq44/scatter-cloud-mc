@@ -13,6 +13,8 @@ angles="${ANGLES:-0 60 90}"
 taus="${TAUS:-1}"
 
 make sweep-plan CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="$geometry" N_PHOTONS="$photon_count" ANGLES="$angles" TAUS="$taus" OUTPUT_DIR="$output_dir"
-make sweep CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="$geometry" N_PHOTONS="$photon_count" ANGLES="$angles" TAUS="$taus" OUTPUT_DIR="$output_dir"
+example_run "$output_dir" "Sweep de comparaison des géométries" make sweep \
+	CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="$geometry" N_PHOTONS="$photon_count" \
+	ANGLES="$angles" TAUS="$taus" OUTPUT_DIR="$output_dir"
 example_report "$output_dir"
 example_summary "Comparaison des géométries" "$output_dir"

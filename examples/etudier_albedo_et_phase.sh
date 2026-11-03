@@ -34,7 +34,8 @@ write_variant() {
       -e "s/^[[:space:]]*albedo[[:space:]]*=.*/albedo = $albedo/" \
       "$source_config" > "$config_file"
   fi
-  make run-one CONFIG="$config_file" NAME="$name" OUTPUT_DIR="$output_dir"
+  example_run "$output_dir" "Simulation $phase, albedo=$albedo" \
+    make run-one CONFIG="$config_file" NAME="$name" OUTPUT_DIR="$output_dir"
 }
 
 for phase in "${phase_functions[@]}"; do

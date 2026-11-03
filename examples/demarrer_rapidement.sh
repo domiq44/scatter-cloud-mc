@@ -7,7 +7,7 @@ set -euo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/_commun.sh"
 
 quick_output_dir="${QUICK_OUTPUT_DIR:-$(example_run_dir demarrage_rapide)}"
-make quick \
+example_run "$quick_output_dir" "Sweep rapide et rapport HTML" make quick \
   GEOMETRY="${GEOMETRY:-sphere}" \
   QUICK_N_PHOTONS="${QUICK_N_PHOTONS:-2000}" \
   QUICK_ANGLES="${QUICK_ANGLES:-0 60 90}" \

@@ -17,6 +17,8 @@ if [[ $# -ne 0 ]]; then
 fi
 
 make sweep-plan CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="$geometry" N_PHOTONS="$photon_count" ANGLES="$angles" TAUS="$taus" OUTPUT_DIR="$output_dir"
-make sweep CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="$geometry" N_PHOTONS="$photon_count" ANGLES="$angles" TAUS="$taus" RESUME="${RESUME:-0}" OUTPUT_DIR="$output_dir"
+example_run "$output_dir" "Sweep complet" make sweep \
+	CONFIG_DIR="$EXAMPLE_CONFIG_DIR" GEOMETRY="$geometry" N_PHOTONS="$photon_count" \
+	ANGLES="$angles" TAUS="$taus" RESUME="${RESUME:-0}" OUTPUT_DIR="$output_dir"
 example_report "$output_dir"
 example_summary "Grille complète" "$output_dir"

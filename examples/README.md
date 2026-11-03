@@ -15,7 +15,14 @@ Chaque script termine par un résumé « Terminé » avec le dossier des résult
 le nombre de CSV et de PNG, et le chemin du rapport HTML s’il a été généré. Les
 parcours qui tracent des images individuelles indiquent explicitement qu’ils
 n’ont pas créé de galerie HTML. Une erreur Make ou Python arrête le script avec
-un code de sortie non nul.
+un code de sortie non nul et affiche la fin du journal pour faciliter le
+diagnostic.
+
+Les détails de calcul sont enregistrés dans `<nom_du_script>.log` dans le
+répertoire du run; le terminal montre les préflights, l’étape en cours et le
+résumé final, sans dérouler les sorties détaillées de chaque commande. Avec
+`VERBOSE=1`, les détails s’affichent aussi en direct tout en restant dans le
+journal. Si un `RUN_DIR` existant est repris, le journal est complété.
 
 | Script | Couverture |
 | --- | --- |
