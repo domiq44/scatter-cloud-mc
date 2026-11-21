@@ -25,6 +25,7 @@ plots/
 !/docs/fonction_phase_double_hg.png
 !/docs/fonction_phase_hg.png
 !/docs/rapport_interactif.png
+!/docs/screenshots/*.png
 
 # --- Fichiers temporaires ---
 *.tmp
