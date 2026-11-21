@@ -1,0 +1,4 @@
+Checks: 'clang-analyzer-*,bugprone-*,performance-*,-clang-analyzer-security.ArrayBound,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-bugprone-command-processor,-bugprone-easily-swappable-parameters'
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*(include|src)/.*'
+FormatStyle: file

@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release (${{ matrix.os }}, ${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+            artifact: scatter-cloud-mc-linux-x86_64
+          - os: ubuntu-latest
+            arch: aarch64
+            artifact: scatter-cloud-mc-linux-arm64
+            cross: true
+          - os: macos-latest
+            arch: x86_64
+            artifact: scatter-cloud-mc-macos-x86_64
+          - os: macos-latest
+            arch: arm64
+            artifact: scatter-cloud-mc-macos-arm64
+            cross: false
+          - os: windows-latest
+            arch: x86_64
+            artifact: scatter-cloud-mc-windows-x86_64.exe
+            cross: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux' && !matrix.cross
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends build-essential
+        shell: bash
+
+      - name: Install cross-compiler (Linux ARM64)
+        if: runner.os == 'Linux' && matrix.cross
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends gcc-aarch64-linux-gnu
+        shell: bash
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+        shell: bash
+
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install mingw --version 13.1.0 --confirm
+        shell: bash
+
+      - name: Build
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            CC=aarch64-linux-gnu-gcc CFLAGS="-O3 -static" make build
+          elif [ "${{ runner.os }}" = "Windows" ]; then
+            CC=x86_64-w64-mingw32-gcc CFLAGS="-O3 -static" make build
+          else
+            CFLAGS="-O3 -static" make build
+          fi
+        shell: bash
+
+      - name: Package artifacts
+        run: |
+          mkdir -p dist
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp build/simulate.exe "dist/${{ matrix.artifact }}"
+          else
+            cp build/simulate "dist/${{ matrix.artifact }}"
+          fi
+          # Add README and license if exists
+          cp README.md dist/
+          [ -f LICENSE ] && cp LICENSE dist/ || true
+        shell: bash
+
+      - name: Create checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+        shell: bash
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/${{ matrix.artifact }}
+            dist/SHA256SUMS.txt
+            dist/README.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

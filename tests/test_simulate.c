@@ -1,0 +1,490 @@
+/*
+ * test_simulate.c - Tests entrypoint CLI simulation (5 tests)
+ * Écriture CSV, cube énergie, graine invalide, fichier comme dossier.
+ * Inclut test cube : CSV + conservation énergie.
+ *
+ * Partie de scatter-cloud-mc
+ */
+
+#include "test_assertions.h"
+#include "test_runner.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+int simulate_entrypoint(int argc, char **argv);
+
+static int write_text_file(const char *path, const char *contents) {
+    FILE *file = fopen(path, "w");
+    if (!file)
+        return 0;
+    int written = fputs(contents, file) >= 0;
+    return fclose(file) == 0 && written;
+}
+
+static int write_test_config(const char *path, const char *geometry, double sigma_e) {
+    char contents[256];
+    int length = snprintf(contents, sizeof(contents),
+                          "n_photons = 16\nsigma_e = %.17g\nalbedo = 1.0\ng = 0.3\n"
+                          "radius = 0.00015\nn_mu_bins = 200\nseed = 42\ntheta_zero = 0.0\n"
+                          "geometry = %s\n",
+                          sigma_e, geometry);
+    return length >= 0 && (size_t)length < sizeof(contents) && write_text_file(path, contents);
+}
+
+/* Vérifie que le point d'entrée produit le CSV configuré dans son répertoire de travail. */
+static TestResult test_simulate_entrypoint_writes_csv(void) {
+    /* Given */
+    char temp_dir[] = "/tmp/scatter-sphere-simulate.XXXXXX";
+    if (!mkdtemp(temp_dir))
+        return assert_condition(0, "un répertoire temporaire est créé");
+
+    char original_dir[1024];
+    if (!getcwd(original_dir, sizeof(original_dir))) {
+        rmdir(temp_dir);
+        return assert_condition(0, "le répertoire courant est récupéré");
+    }
+
+    char config_path[128];
+    char config_dir[96];
+    snprintf(config_dir, sizeof(config_dir), "%s/config", temp_dir);
+    snprintf(config_path, sizeof(config_path), "%s/config.dat", config_dir);
+    int config_dir_created = mkdir(config_dir, 0700) == 0;
+    int config_written = config_dir_created && write_test_config(config_path, "sphere", 0.5);
+    int directory_changed = config_written && chdir(temp_dir) == 0;
+    const char *sphere_stem = "sphere_theta0_sigma0.5_radius0.00014999999999999999_albedo1_hg_g0."
+                              "29999999999999999_N16_bins200_seed123";
+    const char *alternate_sphere_stem =
+        "sphere_theta0_sigma0.59999999999999998_radius0.00014999999999999999_albedo1_hg_g0."
+        "29999999999999999_N16_bins200_seed123";
+    const char *cube_stem = "cube_theta0_sigma0.5_radius0.00014999999999999999_albedo1_hg_g0."
+                            "29999999999999999_N16_bins200_seed123";
+    char sphere_csv_name[512];
+    char sphere_distribution_name[640];
+    char sphere_flux_name[640];
+    char alternate_sphere_csv_name[512];
+    char cube_csv_name[512];
+    char cube_distribution_name[640];
+    char cube_flux_name[640];
+    snprintf(sphere_csv_name, sizeof(sphere_csv_name), "output/%s.csv", sphere_stem);
+    snprintf(sphere_distribution_name, sizeof(sphere_distribution_name),
+             "output/%s.distribution.csv", sphere_stem);
+    snprintf(sphere_flux_name, sizeof(sphere_flux_name), "output/%s.flux.csv", sphere_stem);
+    snprintf(alternate_sphere_csv_name, sizeof(alternate_sphere_csv_name), "output/%s.csv",
+             alternate_sphere_stem);
+    snprintf(cube_csv_name, sizeof(cube_csv_name), "output/%s.csv", cube_stem);
+    snprintf(cube_distribution_name, sizeof(cube_distribution_name), "output/%s.distribution.csv",
+             cube_stem);
+    snprintf(cube_flux_name, sizeof(cube_flux_name), "output/%s.flux.csv", cube_stem);
+
+    /* When */
+    char *arguments[] = {"simulate", "config/config.dat", "123", "output", NULL};
+    int app_status = directory_changed ? simulate_entrypoint(4, arguments) : 1;
+
+    /* Then */
+    FILE *csv = directory_changed ? fopen(sphere_csv_name, "r") : NULL;
+    FILE *distribution = directory_changed ? fopen(sphere_distribution_name, "r") : NULL;
+    FILE *flux = directory_changed ? fopen(sphere_flux_name, "r") : NULL;
+    char header[128] = {0};
+    char row[256];
+    int csv_written = csv && fgets(header, sizeof(header), csv) &&
+                      strcmp(header, "alpha_d_deg,mu,pdf,weight\n") == 0;
+    int csv_row_count = 0;
+    while (csv && fgets(row, sizeof(row), csv))
+        csv_row_count++;
+    char distribution_header[256] = {0};
+    int distribution_written =
+        distribution && fgets(distribution_header, sizeof(distribution_header), distribution) &&
+        strcmp(distribution_header,
+               "alpha_d_deg,mu,density_per_mu,density_per_degree,alpha_d_bin_width_deg,"
+               "standard_error_per_mu,standard_error_per_degree,"
+               "detected_energy_fraction_of_injected,diffuse_density_per_mu,"
+               "diffuse_standard_error_per_mu,ballistic_energy_fraction_of_detected\n") == 0;
+    int distribution_row_count = 0;
+    while (distribution && fgets(row, sizeof(row), distribution))
+        distribution_row_count++;
+    char flux_header[128] = {0};
+    int flux_written = flux && fgets(flux_header, sizeof(flux_header), flux) &&
+                       strcmp(flux_header, "component,energy,energy_fraction_of_injected\n") == 0;
+    if (csv)
+        fclose(csv);
+    if (distribution)
+        fclose(distribution);
+    if (flux)
+        fclose(flux);
+
+    int alternate_config_written =
+        directory_changed && write_test_config(config_path, "sphere", 0.6);
+    char *alternate_arguments[] = {"simulate", "config/config.dat", "123", "output", NULL};
+    int alternate_app_status =
+        alternate_config_written ? simulate_entrypoint(4, alternate_arguments) : 1;
+    FILE *alternate_csv = alternate_app_status == 0 ? fopen(alternate_sphere_csv_name, "r") : NULL;
+    FILE *original_sphere_csv = alternate_app_status == 0 ? fopen(sphere_csv_name, "r") : NULL;
+    int distinct_sigma_outputs = alternate_csv && original_sphere_csv;
+    if (alternate_csv)
+        fclose(alternate_csv);
+    if (original_sphere_csv)
+        fclose(original_sphere_csv);
+
+    int cube_config_written = directory_changed && write_test_config(config_path, "cube", 0.5);
+    char *cube_arguments[] = {"simulate", "config/config.dat", "123", "output", NULL};
+    int cube_app_status = cube_config_written ? simulate_entrypoint(4, cube_arguments) : 1;
+    FILE *cube_csv = cube_config_written ? fopen(cube_csv_name, "r") : NULL;
+    FILE *cube_distribution = cube_config_written ? fopen(cube_distribution_name, "r") : NULL;
+    FILE *cube_flux = cube_config_written ? fopen(cube_flux_name, "r") : NULL;
+    int cube_outputs_written = cube_csv && cube_distribution && cube_flux;
+    if (cube_csv)
+        fclose(cube_csv);
+    if (cube_distribution)
+        fclose(cube_distribution);
+    if (cube_flux)
+        fclose(cube_flux);
+
+    int directory_restored = !directory_changed || chdir(original_dir) == 0;
+    char csv_path[640];
+    snprintf(csv_path, sizeof(csv_path), "%s/%s", temp_dir, sphere_csv_name);
+    remove(csv_path);
+    char distribution_path[768];
+    snprintf(distribution_path, sizeof(distribution_path), "%s/%s", temp_dir,
+             sphere_distribution_name);
+    remove(distribution_path);
+    char flux_path[768];
+    snprintf(flux_path, sizeof(flux_path), "%s/%s", temp_dir, sphere_flux_name);
+    remove(flux_path);
+    snprintf(csv_path, sizeof(csv_path), "%s/%s", temp_dir, alternate_sphere_csv_name);
+    remove(csv_path);
+    snprintf(csv_path, sizeof(csv_path), "%s/%s", temp_dir, cube_csv_name);
+    remove(csv_path);
+    snprintf(distribution_path, sizeof(distribution_path), "%s/%s", temp_dir,
+             cube_distribution_name);
+    remove(distribution_path);
+    snprintf(flux_path, sizeof(flux_path), "%s/%s", temp_dir, cube_flux_name);
+    remove(flux_path);
+    char output_path[128];
+    snprintf(output_path, sizeof(output_path), "%s/output", temp_dir);
+    rmdir(output_path);
+    remove(config_path);
+    rmdir(config_dir);
+    rmdir(temp_dir);
+
+    return assert_condition(config_written && directory_changed && app_status == 0 && csv_written &&
+                                csv_row_count == 16 && distribution_written && flux_written &&
+                                distribution_row_count == 200 && alternate_config_written &&
+                                alternate_app_status == 0 && distinct_sigma_outputs &&
+                                cube_config_written && cube_app_status == 0 &&
+                                cube_outputs_written && directory_restored,
+                            "les noms distinguent les paramètres, la graine et la géométrie");
+}
+
+/* Vérifie que le point d'entrée produit le CSV configuré pour la géométrie cube. */
+static TestResult test_simulate_entrypoint_writes_csv_cube(void) {
+    /* Given */
+    char temp_dir[] = "/tmp/scatter-cube-simulate.XXXXXX";
+    if (!mkdtemp(temp_dir))
+        return assert_condition(0, "un répertoire temporaire est créé");
+
+    char original_dir[1024];
+    if (!getcwd(original_dir, sizeof(original_dir))) {
+        rmdir(temp_dir);
+        return assert_condition(0, "le répertoire courant est récupéré");
+    }
+
+    char config_path[128];
+    char config_dir[96];
+    snprintf(config_dir, sizeof(config_dir), "%s/config", temp_dir);
+    snprintf(config_path, sizeof(config_path), "%s/config.dat", config_dir);
+    int config_dir_created = mkdir(config_dir, 0700) == 0;
+    int config_written = config_dir_created && write_test_config(config_path, "cube", 0.5);
+    int directory_changed = config_written && chdir(temp_dir) == 0;
+
+    const char *cube_stem = "cube_theta0_sigma0.5_radius0.00014999999999999999_albedo1_hg_g0."
+                            "29999999999999999_N16_bins200_seed123";
+    char cube_csv_name[512];
+    char cube_distribution_name[640];
+    char cube_flux_name[640];
+    snprintf(cube_csv_name, sizeof(cube_csv_name), "output/%s.csv", cube_stem);
+    snprintf(cube_distribution_name, sizeof(cube_distribution_name), "output/%s.distribution.csv",
+             cube_stem);
+    snprintf(cube_flux_name, sizeof(cube_flux_name), "output/%s.flux.csv", cube_stem);
+
+    /* When */
+    char *arguments[] = {"simulate", "config/config.dat", "123", "output", NULL};
+    int app_status = directory_changed ? simulate_entrypoint(4, arguments) : 1;
+
+    /* Then */
+    FILE *csv = directory_changed ? fopen(cube_csv_name, "r") : NULL;
+    FILE *distribution = directory_changed ? fopen(cube_distribution_name, "r") : NULL;
+    FILE *flux = directory_changed ? fopen(cube_flux_name, "r") : NULL;
+    char header[128] = {0};
+    char row[256];
+    int csv_written = csv && fgets(header, sizeof(header), csv) &&
+                      strcmp(header, "alpha_d_deg,mu,pdf,weight\n") == 0;
+    int csv_row_count = 0;
+    while (csv && fgets(row, sizeof(row), csv))
+        csv_row_count++;
+    char distribution_header[256] = {0};
+    int distribution_written =
+        distribution && fgets(distribution_header, sizeof(distribution_header), distribution) &&
+        strcmp(distribution_header,
+               "alpha_d_deg,mu,density_per_mu,density_per_degree,alpha_d_bin_width_deg,"
+               "standard_error_per_mu,standard_error_per_degree,"
+               "detected_energy_fraction_of_injected,diffuse_density_per_mu,"
+               "diffuse_standard_error_per_mu,ballistic_energy_fraction_of_detected\n") == 0;
+    int distribution_row_count = 0;
+    while (distribution && fgets(row, sizeof(row), distribution))
+        distribution_row_count++;
+    char flux_header[128] = {0};
+    int flux_written = flux && fgets(flux_header, sizeof(flux_header), flux) &&
+                       strcmp(flux_header, "component,energy,energy_fraction_of_injected\n") == 0;
+    if (csv)
+        fclose(csv);
+    if (distribution)
+        fclose(distribution);
+    if (flux)
+        fclose(flux);
+
+    int directory_restored = !directory_changed || chdir(original_dir) == 0;
+    char csv_path[640];
+    snprintf(csv_path, sizeof(csv_path), "%s/%s", temp_dir, cube_csv_name);
+    remove(csv_path);
+    char distribution_path[768];
+    snprintf(distribution_path, sizeof(distribution_path), "%s/%s", temp_dir,
+             cube_distribution_name);
+    remove(distribution_path);
+    char flux_path[768];
+    snprintf(flux_path, sizeof(flux_path), "%s/%s", temp_dir, cube_flux_name);
+    remove(flux_path);
+    char output_path[128];
+    snprintf(output_path, sizeof(output_path), "%s/output", temp_dir);
+    rmdir(output_path);
+    remove(config_path);
+    rmdir(config_dir);
+    rmdir(temp_dir);
+
+    return assert_condition(config_written && directory_changed && app_status == 0 && csv_written &&
+                                csv_row_count == 16 && distribution_written && flux_written &&
+                                distribution_row_count == 200 && directory_restored,
+                            "cube : les fichiers CSV sont générés correctement");
+}
+
+/* Vérifie la conservation d'énergie pour la géométrie cube (albedo=1, pas d'absorption). */
+static TestResult test_simulate_entrypoint_cube_energy_conservation(void) {
+    /* Given */
+    char temp_dir[] = "/tmp/scatter-cube-energy.XXXXXX";
+    if (!mkdtemp(temp_dir))
+        return assert_condition(0, "un répertoire temporaire est créé");
+
+    char original_dir[1024];
+    if (!getcwd(original_dir, sizeof(original_dir))) {
+        rmdir(temp_dir);
+        return assert_condition(0, "le répertoire courant est récupéré");
+    }
+
+    char config_path[128];
+    char config_dir[96];
+    snprintf(config_dir, sizeof(config_dir), "%s/config", temp_dir);
+    snprintf(config_path, sizeof(config_path), "%s/config.dat", config_dir);
+    int config_dir_created = mkdir(config_dir, 0700) == 0;
+    /* albedo=1, g=0 (isotrope), sigma_e faible pour plusieurs diffusions */
+    char contents[256];
+    int length = snprintf(contents, sizeof(contents),
+                          "n_photons = 1000\nsigma_e = 0.1\nalbedo = 1.0\ng = 0.0\n"
+                          "radius = 1.0\nn_mu_bins = 50\nseed = 42\ntheta_zero = 0.0\n"
+                          "geometry = cube\n");
+    int config_written = config_dir_created && length >= 0 && (size_t)length < sizeof(contents) &&
+                         write_text_file(config_path, contents);
+    int directory_changed = config_written && chdir(temp_dir) == 0;
+
+    /* When */
+    char *arguments[] = {"simulate", "config/config.dat", "123", "output", NULL};
+    int app_status = directory_changed ? simulate_entrypoint(4, arguments) : 1;
+
+    /* Then - vérifier flux.csv pour conservation énergie */
+    char flux_name[256];
+    /* On ne connaît pas le nom exact, on le cherche */
+    int energy_conserved = 0;
+    if (app_status == 0 && directory_changed) {
+        char find_cmd[512];
+        snprintf(find_cmd, sizeof(find_cmd), "find output -name '*.flux.csv' -type f");
+        FILE *find_pipe = popen(find_cmd, "r");
+        if (find_pipe && fgets(flux_name, sizeof(flux_name), find_pipe)) {
+            flux_name[strcspn(flux_name, "\n")] = '\0';
+            FILE *flux = fopen(flux_name, "r");
+            if (flux) {
+                char line[256];
+                double total_energy = 0.0;
+                while (fgets(line, sizeof(line), flux)) {
+                    char component[64];
+                    double energy;
+                    if (sscanf(line, "%63[^,],%lf", component, &energy) == 2) {
+                        total_energy += energy;
+                    }
+                }
+                fclose(flux);
+                /* Avec albedo=1, énergie totale ≈ n_photons (1000) */
+                energy_conserved = (total_energy > 990.0 && total_energy < 1010.0);
+            }
+        }
+        if (find_pipe)
+            pclose(find_pipe);
+    }
+
+    int directory_restored = !directory_changed || chdir(original_dir) == 0;
+    (void)directory_restored;
+    /* Cleanup */
+    char rm_cmd[512];
+    snprintf(rm_cmd, sizeof(rm_cmd), "rm -rf %s", temp_dir);
+    system(rm_cmd);
+
+    return assert_condition(config_written && directory_changed && app_status == 0 &&
+                                energy_conserved,
+                            "cube : conservation d'énergie (albedo=1) respectée");
+}
+
+/* Vérifie que le point d'entrée refuse une graine qui n'est pas un entier. */
+static TestResult test_simulate_entrypoint_rejects_invalid_seed(void) {
+    /* Given */
+    char temp_dir[] = "/tmp/scatter-sphere-simulate-seed.XXXXXX";
+    if (!mkdtemp(temp_dir))
+        return assert_condition(0, "un répertoire temporaire est créé");
+    char config_path[128];
+    char output_path[128];
+    snprintf(config_path, sizeof(config_path), "%s/config.dat", temp_dir);
+    snprintf(output_path, sizeof(output_path), "%s/output", temp_dir);
+    int config_written = write_test_config(config_path, "sphere", 0.5);
+    char *arguments[] = {"simulate", config_path, "not-an-integer", output_path, NULL};
+
+    /* When */
+    int app_status = config_written ? simulate_entrypoint(4, arguments) : 0;
+
+    /* Then */
+    int output_not_created = access(output_path, F_OK) != 0;
+    remove(config_path);
+    rmdir(temp_dir);
+    return assert_condition(config_written && app_status == 1 && output_not_created,
+                            "une graine invalide échoue avant de créer le répertoire de sortie");
+}
+
+/* Vérifie que l'échec de création des CSV est remonté par le point d'entrée. */
+static TestResult test_simulate_entrypoint_rejects_file_as_output_directory(void) {
+    /* Given */
+    char temp_dir[] = "/tmp/scatter-sphere-simulate-output.XXXXXX";
+    if (!mkdtemp(temp_dir))
+        return assert_condition(0, "un répertoire temporaire est créé");
+    char config_path[128];
+    char output_path[128];
+    snprintf(config_path, sizeof(config_path), "%s/config.dat", temp_dir);
+    snprintf(output_path, sizeof(output_path), "%s/output", temp_dir);
+    int config_written = write_test_config(config_path, "sphere", 0.5);
+    int output_blocked = config_written && write_text_file(output_path, "not a directory");
+    char *arguments[] = {"simulate", config_path, "123", output_path, NULL};
+
+    /* When */
+    int app_status = output_blocked ? simulate_entrypoint(4, arguments) : 0;
+
+    /* Then */
+    remove(config_path);
+    remove(output_path);
+    rmdir(temp_dir);
+    return assert_condition(config_written && output_blocked && app_status == 1,
+                            "une erreur d'écriture des CSV produit un statut d'échec");
+}
+
+/* Vérifie que le point d'entrée échoue si le fichier de config est manquant. */
+static TestResult test_simulate_entrypoint_rejects_missing_config(void) {
+    /* Given */
+    char temp_dir[] = "/tmp/scatter-simulate-missing-config.XXXXXX";
+    if (!mkdtemp(temp_dir))
+        return assert_condition(0, "un répertoire temporaire est créé");
+    char output_path[128];
+    snprintf(output_path, sizeof(output_path), "%s/output", temp_dir);
+    char *arguments[] = {"simulate", "nonexistent_config.dat", "123", output_path, NULL};
+
+    /* When */
+    int app_status = simulate_entrypoint(4, arguments);
+
+    /* Then */
+    rmdir(temp_dir);
+    return assert_condition(app_status == 1, "un fichier de config manquant fait échouer l'entrée");
+}
+
+/* Vérifie que le point d'entrée échoue si le fichier de config est invalide. */
+static TestResult test_simulate_entrypoint_rejects_invalid_config(void) {
+    /* Given */
+    char temp_dir[] = "/tmp/scatter-simulate-invalid-config.XXXXXX";
+    if (!mkdtemp(temp_dir))
+        return assert_condition(0, "un répertoire temporaire est créé");
+    char config_path[128];
+    char output_path[128];
+    snprintf(config_path, sizeof(config_path), "%s/config.dat", temp_dir);
+    snprintf(output_path, sizeof(output_path), "%s/output", temp_dir);
+    int config_written =
+        write_text_file(config_path, "n_photons = -1\nsigma_e = 1\nalbedo = 1\ng = 0\nradius = "
+                                     "1\nn_mu_bins = 200\nseed = 42\ntheta_zero = 0\n");
+    char *arguments[] = {"simulate", config_path, "123", output_path, NULL};
+
+    /* When */
+    int app_status = config_written ? simulate_entrypoint(4, arguments) : 0;
+
+    /* Then */
+    int output_not_created = access(output_path, F_OK) != 0;
+    remove(config_path);
+    rmdir(temp_dir);
+    return assert_condition(
+        config_written && app_status == 1 && output_not_created,
+        "un fichier de config invalide (n_photons négatif) échoue avant sortie");
+}
+
+/* Vérifie que le point d'entrée échoue si le répertoire de sortie n'est pas accessible en écriture.
+ */
+static TestResult test_simulate_entrypoint_rejects_unwritable_output_dir(void) {
+    /* Given */
+    char temp_dir[] = "/tmp/scatter-simulate-unwritable-output.XXXXXX";
+    if (!mkdtemp(temp_dir))
+        return assert_condition(0, "un répertoire temporaire est créé");
+    char config_path[128];
+    char output_path[128];
+    snprintf(config_path, sizeof(config_path), "%s/config.dat", temp_dir);
+    snprintf(output_path, sizeof(output_path), "%s/output", temp_dir);
+    int config_written = write_test_config(config_path, "sphere", 0.5);
+    int dir_created =
+        config_written && mkdir(output_path, 0000) == 0; /* pas de permission écriture */
+    char *arguments[] = {"simulate", config_path, "123", output_path, NULL};
+
+    /* When */
+    int app_status = dir_created ? simulate_entrypoint(4, arguments) : 0;
+
+    /* Then - nettoyer permissions pour suppression */
+    if (dir_created) {
+        chmod(output_path, 0700);
+        rmdir(output_path);
+    }
+    remove(config_path);
+    rmdir(temp_dir);
+    return assert_condition(
+        config_written && dir_created && app_status == 1,
+        "un répertoire de sortie non accessible en écriture fait échouer l'entrée");
+}
+
+static const TestCase test_cases[] = {
+    {"test_simulate_entrypoint_writes_csv", test_simulate_entrypoint_writes_csv},
+    {"test_simulate_entrypoint_writes_csv_cube", test_simulate_entrypoint_writes_csv_cube},
+    {"test_simulate_entrypoint_cube_energy_conservation",
+     test_simulate_entrypoint_cube_energy_conservation},
+    {"test_simulate_entrypoint_rejects_invalid_seed",
+     test_simulate_entrypoint_rejects_invalid_seed},
+    {"test_simulate_entrypoint_rejects_file_as_output_directory",
+     test_simulate_entrypoint_rejects_file_as_output_directory},
+    {"test_simulate_entrypoint_rejects_missing_config",
+     test_simulate_entrypoint_rejects_missing_config},
+    {"test_simulate_entrypoint_rejects_invalid_config",
+     test_simulate_entrypoint_rejects_invalid_config},
+    {"test_simulate_entrypoint_rejects_unwritable_output_dir",
+     test_simulate_entrypoint_rejects_unwritable_output_dir},
+};
+
+int main(void) {
+    return run_test_suite("simulate", test_cases, sizeof(test_cases) / sizeof(test_cases[0]));
+}

@@ -1,0 +1,26 @@
+<!--
+ * report_interactif.html - Page d'entrée vers le rapport interactif généré
+ * Lien statique vers output/report_interactif.html (généré par make report)
+ * Sert de point d'accès depuis le dossier web/.
+ *
+ * Partie de scatter-cloud-mc
+ -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rapport interactif - Scatter Cloud MC</title>
+  <link rel="stylesheet" href="report_interactif.css">
+</head>
+<body class="report-entry-page">
+  <header>
+    <h1>Rapport interactif - Scatter Cloud MC</h1>
+  </header>
+  <main class="report-entry">
+    <p>La galerie générée se trouve dans <code>output/report_interactif.html</code>.</p>
+    <p>Générez-la avec <code>make report</code>, puis ouvrez-la depuis ce lien.</p>
+    <a class="report-link" href="../output/report_interactif.html">Ouvrir le rapport généré</a>
+  </main>
+</body>
+</html>

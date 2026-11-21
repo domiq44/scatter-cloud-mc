@@ -1,0 +1,111 @@
+name: Quality
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality (${{ matrix.os }}, ${{ matrix.compiler }}, C${{ matrix.cstd }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: gcc
+            cstd: 11
+            packages: clang-format clang-tidy cppcheck
+            clang_tidy_extra: ""
+            clang_tidy_checks: "-*,bugprone-*,performance-*,portability-*,-bugprone-suspicious-include,-bugprone-easily-swappable-parameters"
+          - os: ubuntu-latest
+            compiler: clang
+            cstd: 11
+            packages: clang-format clang-tidy cppcheck
+            clang_tidy_extra: ""
+            clang_tidy_checks: "-*,bugprone-*,performance-*,portability-*,-bugprone-suspicious-include,-bugprone-easily-swappable-parameters"
+          - os: ubuntu-latest
+            compiler: gcc
+            cstd: 17
+            packages: clang-format clang-tidy cppcheck
+            clang_tidy_extra: ""
+            clang_tidy_checks: "-*,bugprone-*,performance-*,portability-*,-bugprone-suspicious-include,-bugprone-easily-swappable-parameters"
+          - os: macos-latest
+            compiler: clang
+            cstd: 11
+            packages: llvm cppcheck
+            clang_tidy_extra: "-D_DARWIN_C_SOURCE"
+            clang_tidy_checks: "-*,bugprone-*,performance-*,portability-*,-bugprone-suspicious-include,-bugprone-easily-swappable-parameters"
+          - os: windows-latest
+            compiler: clang
+            cstd: 11
+            packages: llvm
+            clang_tidy_extra: "-D_POSIX_C_SOURCE=200809L -D_CRT_SECURE_NO_WARNINGS"
+            clang_tidy_checks: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install analysis tools (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ${{ matrix.packages }}
+
+      - name: Install analysis tools (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install ${{ matrix.packages }}
+          echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+
+      - name: Install analysis tools (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          # Use pre-installed LLVM (newer version already available)
+          echo "C:\Program Files\LLVM\bin" >> $env:GITHUB_PATH
+          # Install cppcheck via Chocolatey and fix FILESDIR
+          choco install cppcheck --confirm
+          # Find cppcheck installation and set FILESDIR to cfg folder
+          $cppcheckPaths = @(
+            "C:\ProgramData\chocolatey\lib\cppcheck\tools",
+            "C:\Program Files\Cppcheck",
+            "C:\Program Files (x86)\Cppcheck",
+            "$env:ChocolateyInstall\lib\cppcheck\tools"
+          )
+          foreach ($path in $cppcheckPaths) {
+            $cfgPath = Join-Path $path "cfg"
+            if (Test-Path $cfgPath) {
+              echo "FILESDIR=$cfgPath" >> $env:GITHUB_ENV
+              echo "$path" >> $env:GITHUB_PATH
+              break
+            }
+          }
+          # Verify tools
+          clang-format --version
+          clang-tidy --version
+          cppcheck --version
+        shell: powershell
+
+      - name: Set compiler
+        run: |
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            echo "CC=clang" >> $GITHUB_ENV
+          else
+            echo "CC=gcc" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      - name: Run quality checks
+        run: make CFLAGS="-std=c${{ matrix.cstd }} -O3 -Iinclude -Isrc -Itests/support -Wall -Wextra -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -D_DARWIN_C_SOURCE -fno-builtin-sincos" quality CLANG_TIDY_EXTRA="${{ matrix.clang_tidy_extra }}" CLANG_TIDY_CHECKS="${{ matrix.clang_tidy_checks }}"
+        shell: bash
+
+      - name: Build
+        run: make CFLAGS="-std=c${{ matrix.cstd }} -O3 -Iinclude -Isrc -Itests/support -Wall -Wextra -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -D_DARWIN_C_SOURCE -fno-builtin-sincos" build
+        shell: bash
+
+      - name: Test
+        run: make CFLAGS="-std=c${{ matrix.cstd }} -O3 -Iinclude -Isrc -Itests/support -Wall -Wextra -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -D_DARWIN_C_SOURCE -fno-builtin-sincos" test
+        shell: bash
